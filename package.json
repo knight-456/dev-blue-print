@@ -1,0 +1,61 @@
+{
+  "name": "create-devblueprint",
+  "version": "1.0.0",
+  "description": "Enterprise-ready scaffolding CLI for React, Vite, and Next.js with feature-based architecture and modular integrations.",
+  "type": "module",
+  "bin": {
+    "create-devblueprint": "./dist/cli.js",
+    "devblueprint": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "templates",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "cli",
+    "scaffold",
+    "react",
+    "vite",
+    "nextjs",
+    "cra",
+    "redux",
+    "tanstack-query",
+    "axios",
+    "tailwind",
+    "mui",
+    "shadcn",
+    "dayjs",
+    "testing",
+    "feature-architecture"
+  ],
+  "author": "DevBlueprint Team",
+  "license": "MIT",
+  "dependencies": {
+    "@clack/prompts": "^0.8.2",
+    "commander": "^12.1.0",
+    "fs-extra": "^11.2.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.8.7",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
