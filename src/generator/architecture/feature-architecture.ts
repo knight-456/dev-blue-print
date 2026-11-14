@@ -11,7 +11,6 @@ export function getFeatureArchitectureFiles(config: ProjectConfig): FileTreeItem
   const hasRedux = config.integrations.includes("redux") && (hasFolder("store") || hasFolder("redux"));
   const hasQuery = config.integrations.includes("query");
   const hasMui = config.integrations.includes("mui");
-  const hasTailwind = config.integrations.includes("tailwind");
   const hasShadcn = config.integrations.includes("shadcn") && hasFolder("components");
   const hasToast = (config.integrations.includes("toast") || config.integrations.includes("cookies")) && hasFolder("utils");
   const isNext = config.framework === "next";
@@ -37,34 +36,27 @@ export const APP_NAME = '${config.projectName}';
   if (hasFolder("constants")) {
     files.push({
       path: `src/constants/index.${ext}`,
-      content: `export const ROUTE_PATHS = Object.freeze({
-  HOME: '/',
-  LOGIN: '/login',
-  DASHBOARD: '/dashboard',
-  SETTINGS: '/settings',
-});
-
-export const USER_ROLES = Object.freeze({
-  SUPER_ADMIN: 'SUPER_ADMIN',
-  ADMIN: 'ADMIN',
-  MANAGER: 'MANAGER',
-  USER: 'USER',
-});
-
-export const COOKIE_KEYS = Object.freeze({
-  ACCESS_TOKEN: 'devblueprint_access_token',
-  REFRESH_TOKEN: 'devblueprint_refresh_token',
-  USER_DATA: 'devblueprint_user_data',
+      content: `export const APP_CONSTANTS = Object.freeze({
+  DEFAULT_LANGUAGE: 'en',
+  STORAGE_PREFIX: 'devblueprint_',
+  DEFAULT_PAGE_SIZE: 20,
 });
 `,
     });
   }
 
-  // 2. Utils: utils.data & local.cookies
+  // 2. Utils: pages-info.utils.ts (Point 3) & utils.data.ts & local.cookies.ts
   if (hasFolder("utils")) {
+    // utils.data.ts
     files.push({
       path: `src/utils/utils.data.${ext}`,
-      content: `export const accessTokenValidityInSeconds = 86400; // 24 Hours
+      content: `export const userRoleConst = Object.freeze({
+  admin: { label: 'Admin', value: 'admin' },
+  manager: { label: 'Manager', value: 'manager' },
+  user: { label: 'User', value: 'user' },
+});
+
+export const accessTokenValidityInSeconds = 86400; // 24 Hours
 
 export const cookiesConst = Object.freeze({
   access_token: { key: 'access_token', maxAge: accessTokenValidityInSeconds },
@@ -73,10 +65,143 @@ export const cookiesConst = Object.freeze({
 });
 `,
     });
+
+    // pages-info.utils.ts with regex, path replacements & validations (Point 3)
+    files.push({
+      path: `src/utils/pages-info.utils.${ext}`,
+      content: `import { userRoleConst } from './utils.data';
+
+export const getPath = (path${isTs ? ": string" : ""}, params${isTs ? ": Record<string, string | number>" : ""})${isTs ? ": string" : ""} => {
+  return Object.keys(params).reduce((updatedPath, key) => {
+    const placeholder = \`:\${key}\`;
+    return updatedPath.replace(placeholder, String(params[key]));
+  }, path);
+};
+
+export const isPathMatch = (regexList${isTs ? ": RegExp[]" : ""}, path${isTs ? ": string" : ""})${isTs ? ": boolean" : ""} =>
+  regexList.some((regex) => regex.test(path));
+
+export const pagesInfo = {
+  home: {
+    key: 'home',
+    label: 'Home',
+    path: '/',
+    regex: /^\\/$/,
+    role: [userRoleConst.admin.value, userRoleConst.manager.value, userRoleConst.user.value],
+    child: {},
+  },
+  login: {
+    key: 'login',
+    label: 'Login',
+    path: '/login',
+    regex: /^\\/login$/,
+    role: Object.values(userRoleConst).map((r) => r.value),
+    child: {},
+  },
+  dashboard: {
+    key: 'dashboard',
+    label: 'Dashboard',
+    path: '/dashboard',
+    regex: /^\\/dashboard$/,
+    role: [userRoleConst.admin.value, userRoleConst.manager.value],
+    child: {},
+  },
+  settings: {
+    key: 'settings',
+    label: 'Settings',
+    path: '/settings',
+    regex: /^\\/settings$/,
+    role: [userRoleConst.admin.value],
+    child: {},
+  },
+};
+`,
+    });
   }
 
-  // 3. Services: Auth & Dashboard
+  // 3. Hooks: useDebounce.ts & useStore.hooks.ts (Point 5) & useLocalStorage.ts
+  if (hasFolder("hooks")) {
+    files.push({
+      path: `src/hooks/useDebounce.${ext}`,
+      content: `"use client";
+import { useState, useEffect } from 'react';
+
+export const useDebounce = <T,>(value: T, delay = 500): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
+export default useDebounce;
+`,
+    });
+
+    if (hasRedux) {
+      files.push({
+        path: `src/hooks/useStore.hooks.${ext}`,
+        content: `import { useSelector, useDispatch } from 'react-redux';
+import type { AppDispatch } from '@/store';
+import type rootReducer from '@/store/rootReducer';
+
+export type RootState = ReturnType<typeof rootReducer>;
+
+type Selector<T> = (state: RootState) => T;
+
+export const useAppState = <T,>(selector: Selector<T>): T => useSelector(selector);
+export const useAppDispatcher = () => useDispatch<AppDispatch>();
+
+export { useAppState as useAppSelector, useAppDispatcher as useAppDispatch };
+`,
+      });
+    }
+
+    files.push({
+      path: `src/hooks/useLocalStorage.${ext}`,
+      content: `"use client";
+import { useState, useEffect } from 'react';
+
+export function useLocalStorage<T>(key: string, initialValue: T) {
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    try {
+      if (typeof window === 'undefined') return initialValue;
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch {
+      return initialValue;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(key, JSON.stringify(storedValue));
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }, [key, storedValue]);
+
+  return [storedValue, setStoredValue] as const;
+}
+
+export default useLocalStorage;
+`,
+    });
+  }
+
+  // 4. Services: auth & dashboard each with .service.ts, .const.ts, and .types.ts (Point 9)
   if (hasFolder("services")) {
+    // Auth service
     files.push({
       path: `src/services/auth/auth.const.${ext}`,
       content: `export const authUrlEnums = Object.freeze({
@@ -89,6 +214,29 @@ export const cookiesConst = Object.freeze({
     });
 
     files.push({
+      path: `src/services/auth/auth.types.${ext}`,
+      content: `export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+}
+
+export interface RefreshTokenResponse {
+  token: string;
+}
+`,
+    });
+
+    files.push({
       path: `src/services/auth/auth.service.${ext}`,
       content: `${
         hasFolder("apiInstance")
@@ -96,26 +244,26 @@ export const cookiesConst = Object.freeze({
           : `import axios from 'axios';`
       }
 import { authUrlEnums } from './auth.const';
-
+${isTs ? `import type { LoginPayload, AuthResponse, RefreshTokenResponse } from './auth.types';\n` : ""}
 class AuthService {
   static authService = new AuthService();
 
-  login = async ({ body }${isTs ? ": { body: any }" : ""}) => {
+  login = async ({ body }${isTs ? ": { body: LoginPayload }" : ""}) => {
     ${
       hasFolder("apiInstance")
-        ? `const response = await baseLoginApiInstance().post(authUrlEnums.LOGIN, body);
+        ? `const response = await baseLoginApiInstance().post${isTs ? "<AuthResponse>" : ""}(authUrlEnums.LOGIN, body);
     return response.data;`
-        : `const response = await axios.post('/auth/login', body);
+        : `const response = await axios.post${isTs ? "<AuthResponse>" : ""}('/auth/login', body);
     return response.data;`
     }
   };
 
-  refreshToken = async ({ body = {} }${isTs ? ": { body?: any } = {}" : ""}) => {
+  refreshToken = async ({ body = {} }${isTs ? ": { body?: Record<string, any> } = {}" : ""}) => {
     ${
       hasFolder("apiInstance")
-        ? `const response = await baseCredApiInstance().post(authUrlEnums.REFRESH_TOKEN, body);
+        ? `const response = await baseCredApiInstance().post${isTs ? "<RefreshTokenResponse>" : ""}(authUrlEnums.REFRESH_TOKEN, body);
     return response.data;`
-        : `const response = await axios.post('/auth/refresh-token', body);
+        : `const response = await axios.post${isTs ? "<RefreshTokenResponse>" : ""}('/auth/refresh-token', body);
     return response.data;`
     }
   };
@@ -145,6 +293,7 @@ export default AuthService.authService;
 `,
     });
 
+    // Dashboard service
     files.push({
       path: `src/services/dashboard/dashboard.const.${ext}`,
       content: `export const dashboardUrlEnums = Object.freeze({
@@ -156,6 +305,24 @@ export default AuthService.authService;
     });
 
     files.push({
+      path: `src/services/dashboard/dashboard.types.${ext}`,
+      content: `export interface DashboardStats {
+  totalUsers: number;
+  activeSessions: number;
+  revenue: number;
+  conversionRate: number;
+}
+
+export interface DashboardItem {
+  id: string;
+  title: string;
+  status: string;
+  createdAt: string;
+}
+`,
+    });
+
+    files.push({
       path: `src/services/dashboard/dashboard.service.${ext}`,
       content: `${
         hasFolder("apiInstance")
@@ -163,16 +330,16 @@ export default AuthService.authService;
           : `import axios from 'axios';`
       }
 import { dashboardUrlEnums } from './dashboard.const';
-
+${isTs ? `import type { DashboardStats, DashboardItem } from './dashboard.types';\n` : ""}
 class DashboardService {
   static dashboardService = new DashboardService();
 
   getStats = async () => {
     ${
       hasFolder("apiInstance")
-        ? `const response = await baseAuthApiInstance().get(dashboardUrlEnums.STATS);
+        ? `const response = await baseAuthApiInstance().get${isTs ? "<DashboardStats>" : ""}(dashboardUrlEnums.STATS);
     return response.data;`
-        : `const response = await axios.get('/dashboard/stats');
+        : `const response = await axios.get${isTs ? "<DashboardStats>" : ""}('/dashboard/stats');
     return response.data;`
     }
   };
@@ -180,9 +347,9 @@ class DashboardService {
   getRecentItems = async (params${isTs ? "?: Record<string, any>" : ""}) => {
     ${
       hasFolder("apiInstance")
-        ? `const response = await baseAuthApiInstance().get(dashboardUrlEnums.RECENT_ITEMS, { params });
+        ? `const response = await baseAuthApiInstance().get${isTs ? "<DashboardItem[]>" : ""}(dashboardUrlEnums.RECENT_ITEMS, { params });
     return response.data;`
-        : `const response = await axios.get('/dashboard/recent-items', { params });
+        : `const response = await axios.get${isTs ? "<DashboardItem[]>" : ""}('/dashboard/recent-items', { params });
     return response.data;`
     }
   };
@@ -193,7 +360,7 @@ export default DashboardService.dashboardService;
     });
   }
 
-  // 4. Loaders: full-page-loader
+  // 5. Components: DashboardView & Loaders (Point 4: no features folder)
   if (hasFolder("components")) {
     files.push({
       path: `src/components/loaders/full-page-loader.${compExt}`,
@@ -217,9 +384,62 @@ export const FullPageLoader = ({ isLoading = true }${isTs ? ": { isLoading?: boo
 export default FullPageLoader;
 `,
     });
+
+    files.push({
+      path: `src/components/dashboard/dashboard-view.${compExt}`,
+      content: `import React from 'react';
+${hasShadcn ? `import { Button } from '@/components/ui/button';\n` : ""}
+export const DashboardView = () => {
+  return (
+    <div className="space-y-6 max-w-7xl mx-auto p-6">
+      <div className="p-8 rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              Welcome to ${config.projectName}
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Enterprise Project Template configured with clean modular architecture.
+            </p>
+          </div>
+          ${
+            hasShadcn
+              ? `<Button onClick={() => alert('DevBlueprint Action Triggered!')}>
+            + New Record
+          </Button>`
+              : ""
+          }
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+            <span className="text-xs font-semibold text-blue-600 uppercase">Framework</span>
+            <p className="text-xl font-bold text-blue-900 mt-1">${config.framework.toUpperCase()}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-purple-50 border border-purple-100">
+            <span className="text-xs font-semibold text-purple-600 uppercase">Language</span>
+            <p className="text-xl font-bold text-purple-900 mt-1">${config.language.toUpperCase()}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+            <span className="text-xs font-semibold text-emerald-600 uppercase">Preset</span>
+            <p className="text-xl font-bold text-emerald-900 mt-1">${config.preset.toUpperCase()}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
+            <span className="text-xs font-semibold text-amber-600 uppercase">Modules</span>
+            <p className="text-xl font-bold text-amber-900 mt-1">${folders.length} Folders</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DashboardView;
+`,
+    });
   }
 
-  // 5. Providers: store.provider, layout.provider, navbar.provider, index
+  // 6. Providers: each file has provider before extension (Point 7)
   if (hasFolder("provider")) {
     files.push({
       path: `src/provider/store.provider.${compExt}`,
@@ -276,7 +496,7 @@ export default NavbarProvider;
       path: `src/provider/layout.provider.${compExt}`,
       content: `"use client";
 import React from 'react';
-${hasMui ? `import { ThemeProvider, CssBaseline } from '@mui/material';\nimport muiTheme from '@/styles/theme';\n` : ""}${hasQuery ? `import { QueryClientProvider } from '@tanstack/react-query';\nimport queryClient from '@/provider/react-query';\n` : ""}${hasToast ? `import { Toaster } from 'react-hot-toast';\n` : ""}
+${hasMui ? `import ThemeWrapperProvider from './theme.provider';\n` : ""}${hasQuery ? `import QueryProvider from './query.provider';\n` : ""}${hasToast ? `import { Toaster } from 'react-hot-toast';\n` : ""}
 export const LayoutProvider = ({ children }${isTs ? ": { children: React.ReactNode }" : ""}) => {
   let content = (
     <>
@@ -285,8 +505,8 @@ export const LayoutProvider = ({ children }${isTs ? ": { children: React.ReactNo
     </>
   );
 
-  ${hasMui ? `content = <ThemeProvider theme={muiTheme}><CssBaseline />{content}</ThemeProvider>;` : ""}
-  ${hasQuery ? `content = <QueryClientProvider client={queryClient}>{content}</QueryClientProvider>;` : ""}
+  ${hasMui ? `content = <ThemeWrapperProvider>{content}</ThemeWrapperProvider>;` : ""}
+  ${hasQuery ? `content = <QueryProvider>{content}</QueryProvider>;` : ""}
 
   return content;
 };
@@ -323,133 +543,7 @@ export { StoreProvider, LayoutProvider, NavbarProvider };
     });
   }
 
-  // 6. Layouts: MainLayout
-  if (hasFolder("layouts")) {
-    files.push({
-      path: `src/layouts/MainLayout.${compExt}`,
-      content: `import React from 'react';
-${hasFolder("provider") ? `import { useNavbar } from '@/provider/navbar.provider';` : ""}
-
-export const MainLayout = ({ children }${isTs ? ": { children: React.ReactNode }" : ""}) => {
-  ${hasFolder("provider") ? `const { sidebarOpen, toggleSidebar } = useNavbar();` : `const sidebarOpen = true;\n  const toggleSidebar = () => {};`}
-
-  return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={toggleSidebar}
-              className="p-2 rounded-md hover:bg-slate-100 text-slate-600 focus:outline-hidden cursor-pointer"
-            >
-              ☰
-            </button>
-            <span className="font-extrabold text-xl tracking-tight text-blue-600">
-              ${config.projectName}
-            </span>
-          </div>
-          <nav className="flex items-center space-x-6 text-sm font-semibold text-slate-600">
-            <span className="hover:text-blue-600 cursor-pointer">Dashboard</span>
-            <span className="hover:text-blue-600 cursor-pointer">Analytics</span>
-            <span className="hover:text-blue-600 cursor-pointer">Settings</span>
-          </nav>
-        </div>
-      </header>
-
-      <div className="flex-1 flex max-w-7xl w-full mx-auto">
-        {sidebarOpen && (
-          <aside className="w-64 border-r border-slate-200 bg-white p-4 space-y-2 hidden md:block">
-            <div className="text-xs font-bold uppercase text-slate-400 px-3 py-1">
-              Modules
-            </div>
-            <a href="#dashboard" className="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700">
-              📊 Overview
-            </a>
-            <a href="#analytics" className="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700">
-              📈 Analytics
-            </a>
-            <a href="#users" className="block px-3 py-2 rounded-md text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700">
-              👥 User Management
-            </a>
-          </aside>
-        )}
-        <main className="flex-1 p-6">
-          {children}
-        </main>
-      </div>
-
-      <footer className="border-t border-slate-200 py-4 text-center text-xs text-slate-500 bg-white">
-        ${config.projectName} • Powered by DevBlueprint
-      </footer>
-    </div>
-  );
-};
-
-export default MainLayout;
-`,
-    });
-  }
-
-  // 7. Feature: Dashboard View
-  files.push({
-    path: `src/features/dashboard/components/DashboardView.${compExt}`,
-    content: `import React from 'react';
-${hasShadcn ? `import { Button } from '@/components/ui/button';\n` : ""}
-export const DashboardView = () => {
-  return (
-    <div className="space-y-6">
-      <div className="p-8 rounded-2xl bg-white border border-slate-200 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              Welcome to ${config.projectName}
-            </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Enterprise Project Template configured with modular architecture.
-            </p>
-          </div>
-          ${
-            hasShadcn
-              ? `<Button onClick={() => alert('Action Triggered!')}>
-            + New Record
-          </Button>`
-              : ""
-          }
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
-            <span className="text-xs font-semibold text-blue-600 uppercase">Framework</span>
-            <p className="text-xl font-bold text-blue-900 mt-1">${config.framework.toUpperCase()}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-purple-50 border border-purple-100">
-            <span className="text-xs font-semibold text-purple-600 uppercase">Language</span>
-            <p className="text-xl font-bold text-purple-900 mt-1">${config.language.toUpperCase()}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
-            <span className="text-xs font-semibold text-emerald-600 uppercase">Preset</span>
-            <p className="text-xl font-bold text-emerald-900 mt-1">${config.preset.toUpperCase()}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
-            <span className="text-xs font-semibold text-amber-600 uppercase">Folders</span>
-            <p className="text-xl font-bold text-amber-900 mt-1">${folders.length} Modules</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default DashboardView;
-`,
-  });
-
-  files.push({
-    path: `src/features/dashboard/index.${ext}`,
-    content: `export * from './components/DashboardView';\n`,
-  });
-
-  // 8. Framework Specific App / Routes
+  // 7. Framework Specific App / Routes (No separate layouts/ folder, Point 6)
   if (isNext) {
     files.push({
       path: `src/proxy.${ext}`,
@@ -487,7 +581,7 @@ export default function RootLayout({
 }${isTs ? ": { children: React.ReactNode }" : ""}) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className="antialiased min-h-screen bg-slate-50 text-slate-900">
         ${hasFolder("provider") ? `<Provider>${"\n          "}{children}${"\n        "}</Provider>` : "{children}"}
       </body>
     </html>
@@ -498,32 +592,30 @@ export default function RootLayout({
 
     files.push({
       path: `src/app/page.${compExt}`,
-      content: `${hasFolder("layouts") ? `import MainLayout from '@/layouts/MainLayout';\n` : ""}import DashboardView from '@/features/dashboard/components/DashboardView';
-
+      content: `${hasFolder("components") ? `import DashboardView from '@/components/dashboard/dashboard-view';\n` : ""}
 export default function HomePage() {
   return (
-    ${hasFolder("layouts") ? `<MainLayout><DashboardView /></MainLayout>` : `<DashboardView />`}
+    <main className="min-h-screen py-10">
+      ${hasFolder("components") ? `<DashboardView />` : `<div className="p-8 font-bold text-2xl">Welcome to ${config.projectName}</div>`}
+    </main>
   );
 }
 `,
     });
   } else {
-    // Vite and CRA
+    // Vite & CRA
     files.push({
       path: `src/routes/AppRoutes.${compExt}`,
       content: `import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-${hasFolder("layouts") ? `import MainLayout from '@/layouts/MainLayout';\n` : ""}import DashboardView from '@/features/dashboard/components/DashboardView';
-
+${hasFolder("components") ? `import DashboardView from '@/components/dashboard/dashboard-view';\n` : ""}
 export const AppRoutes = () => {
   return (
     <BrowserRouter>
-      ${hasFolder("layouts") ? `<MainLayout>` : ""}
-        <Routes>
-          <Route path="/" element={<DashboardView />} />
-          <Route path="/dashboard" element={<DashboardView />} />
-        </Routes>
-      ${hasFolder("layouts") ? `</MainLayout>` : ""}
+      <Routes>
+        <Route path="/" element={${hasFolder("components") ? `<DashboardView />` : `<div>Home</div>`}} />
+        <Route path="/dashboard" element={${hasFolder("components") ? `<DashboardView />` : `<div>Dashboard</div>`}} />
+      </Routes>
     </BrowserRouter>
   );
 };

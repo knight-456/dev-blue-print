@@ -24,226 +24,294 @@ export async function getReduxIntegration(config: ProjectConfig): Promise<{
     },
   };
 
-  const storeContent = isTs
-    ? `import { configureStore } from '@reduxjs/toolkit';
-import rootReducer from './root-reducer';
-
-export const store = configureStore({
-  reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false,
-    }),
-  devTools: process.env.NODE_ENV !== 'production',
-});
-
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
-export default store;
-`
-    : `import { configureStore } from '@reduxjs/toolkit';
-import rootReducer from './root-reducer';
-
-export const store = configureStore({
-  reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: false,
-    }),
-  devTools: process.env.NODE_ENV !== 'production',
-});
-
-export default store;
-`;
-
+  // 1. rootReducer.ts matching production pattern
   const rootReducerContent = `import { combineReducers } from '@reduxjs/toolkit';
-import authReducer from '@/redux/auth/authSlice';
-import localReducer from '@/redux/local/localSlice';
+import localsSlice from '@/redux/local/slice';
+import authSlice from '@/redux/auth/slice';
+import pagesInfoSlice from '@/redux/pages-info/slice';
+
+// page reducers
+export const pageReducers = {
+  auth: authSlice,
+};
+
+// global reducers
+export const globalReducers = {
+  locals: localsSlice,
+  pagesInfo: pagesInfoSlice,
+};
+
+// modal reducers
+export const modalReducers = {};
 
 const rootReducer = combineReducers({
-  auth: authReducer,
-  local: localReducer,
+  ...modalReducers,
+  ...pageReducers,
+  ...globalReducers,
 });
 
 export default rootReducer;
 `;
 
-  const hooksContent = isTs
-    ? `import { useDispatch, useSelector } from 'react-redux';
-import type { TypedUseSelectorHook } from 'react-redux';
-import type { RootState, AppDispatch } from './index';
+  // 2. store/index.ts
+  const storeIndexContent = isTs
+    ? `import { configureStore } from '@reduxjs/toolkit';
+import rootReducer from './rootReducer';
 
-export const useAppDispatch: () => AppDispatch = useDispatch;
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+const store = configureStore({
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
+  devTools: process.env.NODE_ENV !== 'production',
+});
+
+export type RootState = ReturnType<typeof rootReducer>;
+export type AppDispatch = typeof store.dispatch;
+export default store;
 `
-    : `import { useDispatch, useSelector } from 'react-redux';
+    : `import { configureStore } from '@reduxjs/toolkit';
+import rootReducer from './rootReducer';
 
-export const useAppDispatch = () => useDispatch();
-export const useAppSelector = (selector) => useSelector(selector);
+const store = configureStore({
+  reducer: rootReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: false,
+    }),
+  devTools: process.env.NODE_ENV !== 'production',
+});
+
+export default store;
 `;
 
-  const authSliceContent = isTs
-    ? `import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+  // 3. redux/local module (const.ts, state.ts, slice.ts)
+  const localConst = `export const genderOptions = {
+  male: { label: "Male", key: "male", value: "male" },
+  female: { label: "Female", key: "female", value: "female" },
+  other: { label: "Other", key: "other", value: "other" },
+};
 
-export interface User {
+export const themeOptions = {
+  light: { label: "Light", key: "light", value: "light" },
+  dark: { label: "Dark", key: "dark", value: "dark" },
+};
+`;
+
+  const localState = isTs
+    ? `export interface LocalState {
+  sidebarOpen: boolean;
+  themeMode: 'light' | 'dark';
+  modal: Record<string, any>;
+}
+
+export const localsInitialState: LocalState = {
+  sidebarOpen: true,
+  themeMode: 'light',
+  modal: {},
+};
+`
+    : `export const localsInitialState = {
+  sidebarOpen: true,
+  themeMode: 'light',
+  modal: {},
+};
+`;
+
+  const localSlice = `import { createSlice } from '@reduxjs/toolkit';
+import { localsInitialState } from './state';
+
+const locals = createSlice({
+  name: 'locals',
+  initialState: localsInitialState,
+  reducers: {
+    toggleSidebar: (state) => {
+      state.sidebarOpen = !state.sidebarOpen;
+    },
+    setSidebarOpen: (state, { payload }) => {
+      state.sidebarOpen = payload;
+    },
+    setThemeMode: (state, { payload }) => {
+      state.themeMode = payload;
+    },
+    setModal: (state, { payload }) => {
+      state.modal = payload;
+    },
+    resetModal: (state) => {
+      state.modal = localsInitialState.modal;
+    },
+  },
+});
+
+export const { toggleSidebar, setSidebarOpen, setThemeMode, setModal, resetModal } = locals.actions;
+export default locals.reducer;
+`;
+
+  // 4. redux/auth module (const.ts, state.ts, slice.ts)
+  const authConst = `export const authConst = {
+  TOKEN_KEY: 'access_token',
+  REFRESH_KEY: 'refresh_token',
+};
+`;
+
+  const authState = isTs
+    ? `export interface UserProfile {
   id: string;
   name: string;
   email: string;
   role: string;
 }
 
-interface AuthState {
-  user: User | null;
+export interface AuthState {
+  user: UserProfile | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
 
-const initialState: AuthState = {
+export const authInitialState: AuthState = {
   user: null,
   token: null,
   isAuthenticated: false,
   isLoading: false,
 };
-
-export const authSlice = createSlice({
-  name: 'auth',
-  initialState,
-  reducers: {
-    setCredentials: (
-      state,
-      action: PayloadAction<{ user: User; token: string }>
-    ) => {
-      state.user = action.payload.user;
-      state.token = action.payload.token;
-      state.isAuthenticated = true;
-    },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
-    },
-    logout: (state) => {
-      state.user = null;
-      state.token = null;
-      state.isAuthenticated = false;
-    },
-  },
-});
-
-export const { setCredentials, setLoading, logout } = authSlice.actions;
-export default authSlice.reducer;
 `
-    : `import { createSlice } from '@reduxjs/toolkit';
-
-const initialState = {
+    : `export const authInitialState = {
   user: null,
   token: null,
   isAuthenticated: false,
   isLoading: false,
 };
-
-export const authSlice = createSlice({
-  name: 'auth',
-  initialState,
-  reducers: {
-    setCredentials: (state, action) => {
-      state.user = action.payload.user;
-      state.token = action.payload.token;
-      state.isAuthenticated = true;
-    },
-    setLoading: (state, action) => {
-      state.isLoading = action.payload;
-    },
-    logout: (state) => {
-      state.user = null;
-      state.token = null;
-      state.isAuthenticated = false;
-    },
-  },
-});
-
-export const { setCredentials, setLoading, logout } = authSlice.actions;
-export default authSlice.reducer;
 `;
 
-  const localSliceContent = isTs
-    ? `import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+  const authSlice = `import { createSlice } from '@reduxjs/toolkit';
+import { authInitialState } from './state';
 
-interface LocalState {
-  sidebarOpen: boolean;
-  themeMode: 'light' | 'dark';
+const auth = createSlice({
+  name: 'auth',
+  initialState: authInitialState,
+  reducers: {
+    setCredentials: (state, { payload }) => {
+      state.user = payload.user;
+      state.token = payload.token;
+      state.isAuthenticated = true;
+    },
+    setLoading: (state, { payload }) => {
+      state.isLoading = payload;
+    },
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      state.isAuthenticated = false;
+    },
+  },
+});
+
+export const { setCredentials, setLoading, logout } = auth.actions;
+export default auth.reducer;
+`;
+
+  // 5. redux/pages-info module (const.ts, state.ts, slice.ts)
+  const pagesInfoConst = `export const pagesInfoConst = {
+  DEFAULT_PAGE: 'home',
+};
+`;
+
+  const pagesInfoState = isTs
+    ? `export interface PageItem {
+  key: string;
+  label: string;
+  path: string;
 }
 
-const initialState: LocalState = {
-  sidebarOpen: true,
-  themeMode: 'light',
+export interface PagesInfoState {
+  currentPage: PageItem;
+  breadcrumbs: PageItem[];
+}
+
+export const pagesInfoInitialState: PagesInfoState = {
+  currentPage: { key: 'home', label: 'Home', path: '/' },
+  breadcrumbs: [],
 };
-
-export const localSlice = createSlice({
-  name: 'local',
-  initialState,
-  reducers: {
-    toggleSidebar: (state) => {
-      state.sidebarOpen = !state.sidebarOpen;
-    },
-    setSidebarOpen: (state, action: PayloadAction<boolean>) => {
-      state.sidebarOpen = action.payload;
-    },
-    setThemeMode: (state, action: PayloadAction<'light' | 'dark'>) => {
-      state.themeMode = action.payload;
-    },
-  },
-});
-
-export const { toggleSidebar, setSidebarOpen, setThemeMode } = localSlice.actions;
-export default localSlice.reducer;
 `
-    : `import { createSlice } from '@reduxjs/toolkit';
-
-const initialState = {
-  sidebarOpen: true,
-  themeMode: 'light',
+    : `export const pagesInfoInitialState = {
+  currentPage: { key: 'home', label: 'Home', path: '/' },
+  breadcrumbs: [],
 };
+`;
 
-export const localSlice = createSlice({
-  name: 'local',
-  initialState,
+  const pagesInfoSlice = `import { createSlice } from '@reduxjs/toolkit';
+import { pagesInfoInitialState } from './state';
+
+const pagesInfo = createSlice({
+  name: 'pagesInfo',
+  initialState: pagesInfoInitialState,
   reducers: {
-    toggleSidebar: (state) => {
-      state.sidebarOpen = !state.sidebarOpen;
+    setCurrentPage: (state, { payload }) => {
+      state.currentPage = payload;
     },
-    setSidebarOpen: (state, action) => {
-      state.sidebarOpen = action.payload;
-    },
-    setThemeMode: (state, action) => {
-      state.themeMode = action.payload;
+    setBreadcrumbs: (state, { payload }) => {
+      state.breadcrumbs = payload;
     },
   },
 });
 
-export const { toggleSidebar, setSidebarOpen, setThemeMode } = localSlice.actions;
-export default localSlice.reducer;
+export const { setCurrentPage, setBreadcrumbs } = pagesInfo.actions;
+export default pagesInfo.reducer;
 `;
 
   const files: FileTreeItem[] = [
     {
       path: `src/store/index.${ext}`,
-      content: storeContent,
+      content: storeIndexContent,
     },
     {
-      path: `src/store/root-reducer.${ext}`,
+      path: `src/store/rootReducer.${ext}`,
       content: rootReducerContent,
     },
     {
-      path: `src/store/hooks.${ext}`,
-      content: hooksContent,
+      path: `src/store/root-reducer.${ext}`,
+      content: `export { default } from './rootReducer';\n`,
+    },
+    // redux/local
+    {
+      path: `src/redux/local/const.${ext}`,
+      content: localConst,
     },
     {
-      path: `src/redux/auth/authSlice.${ext}`,
-      content: authSliceContent,
+      path: `src/redux/local/state.${ext}`,
+      content: localState,
     },
     {
-      path: `src/redux/local/localSlice.${ext}`,
-      content: localSliceContent,
+      path: `src/redux/local/slice.${ext}`,
+      content: localSlice,
+    },
+    // redux/auth
+    {
+      path: `src/redux/auth/const.${ext}`,
+      content: authConst,
+    },
+    {
+      path: `src/redux/auth/state.${ext}`,
+      content: authState,
+    },
+    {
+      path: `src/redux/auth/slice.${ext}`,
+      content: authSlice,
+    },
+    // redux/pages-info
+    {
+      path: `src/redux/pages-info/const.${ext}`,
+      content: pagesInfoConst,
+    },
+    {
+      path: `src/redux/pages-info/state.${ext}`,
+      content: pagesInfoState,
+    },
+    {
+      path: `src/redux/pages-info/slice.${ext}`,
+      content: pagesInfoSlice,
     },
   ];
 

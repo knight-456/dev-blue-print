@@ -11,10 +11,10 @@ export function createCliCommand(): Command {
     .argument("[project-name]", "Target project name and directory")
     .option("-f, --framework <type>", "Framework to use: vite | next | cra")
     .option("-l, --language <lang>", "Language to use: typescript | javascript")
-    .option("-a, --architecture <arch>", "Architecture pattern: enterprise | feature | minimal", "enterprise")
+    .option("-a, --architecture <arch>", "Architecture pattern: enterprise | modular | minimal", "enterprise")
     .option(
       "--folders <items...>",
-      "Folders to include: apiInstance, interceptors, services, store, redux, provider, components, config, constants, hooks, utils, layouts"
+      "Folders to include: apiInstance, interceptors, services, store, redux, provider, components, config, constants, hooks, utils"
     )
     .option(
       "-i, --integrations <items...>",

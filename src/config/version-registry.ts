@@ -19,14 +19,12 @@ export const ENTERPRISE_VERSIONS: Record<string, string> = {
   postcss: "^8.5.4",
   sass: "^1.96.0",
 
-  // Material UI v7 & Emotion
-  "@mui/material": "^7.3.6",
-  "@mui/icons-material": "^7.3.6",
-  "@mui/x-date-pickers": "^8.23.0",
-  "@mui/x-data-grid": "^8.27.4",
-  "@mui/x-charts": "^9.0.4",
-  "@emotion/react": "^11.14.1",
-  "@emotion/styled": "^11.14.1",
+  // Material UI & Emotion (Verified peer compatibility)
+  "@mui/material": "^6.1.9",
+  "@mui/icons-material": "^6.1.9",
+  "@mui/x-date-pickers": "^7.23.0",
+  "@emotion/react": "^11.14.0",
+  "@emotion/styled": "^11.14.0",
 
   // State & Data Fetching
   "@reduxjs/toolkit": "^2.11.2",
@@ -37,8 +35,8 @@ export const ENTERPRISE_VERSIONS: Record<string, string> = {
 
   // Forms & Validation
   "react-hook-form": "^7.71.1",
-  zod: "^4.3.6",
-  "@hookform/resolvers": "^5.2.2",
+  zod: "^3.24.0",
+  "@hookform/resolvers": "^3.9.1",
 
   // Utilities, Cookies & Animation
   "cookies-next": "^6.1.1",
@@ -46,11 +44,11 @@ export const ENTERPRISE_VERSIONS: Record<string, string> = {
   "react-hot-toast": "^2.6.0",
   "react-spinners": "^0.17.0",
   "framer-motion": "^12.33.0",
-  "lucide-react": "^0.563.0",
-  clsx: "^2.1.1",
+  "lucide-react": "^0.475.0",
+  "clsx": "^2.1.1",
   "tailwind-merge": "^3.4.0",
   hashids: "^2.3.0",
-  recharts: "^3.7.0",
+  recharts: "^2.15.0",
 
   // Routing & Bundling (Vite / CRA)
   "react-router-dom": "^7.1.5",
@@ -79,7 +77,7 @@ export const LATEST_VERSIONS: Record<string, string> = {
   dayjs: "^1.11.19",
   "react-hook-form": "^7.54.0",
   zod: "^3.24.0",
-  "@hookform/resolvers": "^4.0.0",
+  "@hookform/resolvers": "^3.9.1",
   "lucide-react": "^0.475.0",
 };
 
@@ -104,12 +102,12 @@ export const STABLE_VERSIONS: Record<string, string> = {
   "@hookform/resolvers": "^3.9.1",
   "@mui/material": "^5.16.14",
   "@mui/icons-material": "^5.16.14",
-  "@emotion/react": "^11.13.5",
-  "@emotion/styled": "^11.13.5",
+  "@emotion/react": "^11.14.0",
+  "@emotion/styled": "^11.14.0",
   "lucide-react": "^0.460.0",
   "clsx": "^2.1.1",
   "tailwind-merge": "^2.5.5",
-  "vite": "^5.4.11",
+  vite: "^5.4.11",
   "@vitejs/plugin-react": "^4.3.4",
   vitest: "^2.1.8",
   typescript: "^5.6.3",

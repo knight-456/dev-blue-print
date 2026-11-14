@@ -31,7 +31,7 @@ export function resolveConfiguration(
     args.folders ||
     promptAnswers?.folders ||
     (architecture === "minimal"
-      ? ["components", "config", "layouts"]
+      ? ["components", "config"]
       : [...ALL_PROJECT_FOLDERS]);
 
   // Synchronize integrations with selected folders

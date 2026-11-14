@@ -12,7 +12,6 @@ export const ALL_PROJECT_FOLDERS: ProjectFolder[] = [
   "constants",
   "hooks",
   "utils",
-  "layouts",
 ];
 
 export const DEFAULT_CONFIG: ProjectConfig = {

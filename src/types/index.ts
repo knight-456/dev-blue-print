@@ -2,7 +2,7 @@ export type Framework = "vite" | "next" | "cra";
 
 export type Language = "typescript" | "javascript";
 
-export type Architecture = "enterprise" | "feature" | "minimal";
+export type Architecture = "enterprise" | "modular" | "minimal";
 
 export type VersionPreset = "enterprise" | "latest" | "stable";
 
@@ -17,8 +17,7 @@ export type ProjectFolder =
   | "config"
   | "constants"
   | "hooks"
-  | "utils"
-  | "layouts";
+  | "utils";
 
 export type Integration =
   | "redux"

@@ -46,10 +46,11 @@ export const loginSchema = z.object({
 `;
 
   const formComponentContent = isTs
-    ? `import React from 'react';
+    ? `"use client";
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, LoginFormData } from '../types/loginSchema';
+import { loginSchema, LoginFormData } from './loginSchema';
 
 interface LoginFormProps {
   onSubmit: (data: LoginFormData) => void;
@@ -106,10 +107,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, isLoading }) => 
 
 export default LoginForm;
 `
-    : `import React from 'react';
+    : `"use client";
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema } from '../types/loginSchema';
+import { loginSchema } from './loginSchema';
 
 export const LoginForm = ({ onSubmit, isLoading }) => {
   const {
@@ -164,11 +166,11 @@ export default LoginForm;
 
   const files: FileTreeItem[] = [
     {
-      path: `src/features/auth/types/loginSchema.${ext}`,
+      path: `src/components/auth/loginSchema.${ext}`,
       content: schemaContent,
     },
     {
-      path: `src/features/auth/components/LoginForm.${compExt}`,
+      path: `src/components/auth/login-form.${compExt}`,
       content: formComponentContent,
     },
   ];

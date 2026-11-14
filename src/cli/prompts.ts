@@ -101,7 +101,7 @@ export async function runInteractivePrompts(
       {
         value: "enterprise",
         label: "Enterprise Stack (Recommended)",
-        hint: "React 19, Next 16, Tailwind v4, Redux 2.11, Axios 1.13, MUI 7",
+        hint: "React 19, Next 16, Tailwind v4, Redux 2.11, Axios 1.13, MUI 6/7",
       },
       {
         value: "latest",
@@ -131,7 +131,7 @@ export async function runInteractivePrompts(
     options: [
       {
         value: "all",
-        label: "Full Enterprise Stack (All 12 Modules)",
+        label: `Full Enterprise Stack (${ALL_PROJECT_FOLDERS.length} Modules)`,
         hint: "apiInstance, interceptors, services, store, redux, provider, components, etc.",
       },
       {
@@ -170,27 +170,27 @@ export async function runInteractivePrompts(
         {
           value: "services",
           label: "src/services/",
-          hint: "Domain services (AuthService, DashboardService, constants)",
+          hint: "Domain services (auth.service, auth.const, auth.types, dashboard)",
         },
         {
           value: "store",
           label: "src/store/",
-          hint: "Redux Toolkit root store & root-reducer",
+          hint: "Redux store & rootReducer with pageReducers and globalReducers",
         },
         {
           value: "redux",
           label: "src/redux/",
-          hint: "Redux slices (authSlice, localSlice)",
+          hint: "Redux slices with const.ts, state.ts, slice.ts per module",
         },
         {
           value: "provider",
           label: "src/provider/",
-          hint: "Master Provider, StoreProvider, LayoutProvider, NavbarProvider",
+          hint: "store.provider, layout.provider, navbar.provider, theme.provider",
         },
         {
           value: "components",
           label: "src/components/",
-          hint: "UI primitives & FullPageLoader",
+          hint: "UI primitives, dashboard-view & FullPageLoader",
         },
         {
           value: "config",
@@ -200,22 +200,17 @@ export async function runInteractivePrompts(
         {
           value: "constants",
           label: "src/constants/",
-          hint: "Route paths, user roles & cookie keys",
+          hint: "App constants & storage keys",
         },
         {
           value: "hooks",
           label: "src/hooks/",
-          hint: "Custom hooks (useAuth, useLocalStorage)",
+          hint: "useDebounce, useStore.hooks, useLocalStorage",
         },
         {
           value: "utils",
           label: "src/utils/",
-          hint: "Cookie helpers (cookies-next), toast, utils.data, Day.js",
-        },
-        {
-          value: "layouts",
-          label: "src/layouts/",
-          hint: "MainLayout with header & collapsible sidebar",
+          hint: "pages-info.utils (regex paths), local.cookies, Day.js",
         },
       ],
       required: false,
@@ -271,7 +266,7 @@ export async function runInteractivePrompts(
       },
       {
         value: "mui",
-        label: "Material UI (MUI v7)",
+        label: "Material UI (MUI v6/v7)",
         hint: "MUI ThemeProvider, CssBaseline, icons & date pickers",
       },
       {
@@ -344,7 +339,7 @@ export async function runInteractivePrompts(
     targetDir: projectName as string,
     framework: framework as Framework,
     language: language as Language,
-    architecture: folderMode === "all" ? "enterprise" : "feature",
+    architecture: folderMode === "all" ? "enterprise" : "modular",
     preset: preset as VersionPreset,
     folders: selectedFolders,
     integrations: integrations as Integration[],

@@ -9,7 +9,8 @@ export async function getTestingIntegration(config: ProjectConfig): Promise<{
   const ext = isTs ? "ts" : "js";
   const compExt = isTs ? "tsx" : "jsx";
 
-  const isCra = config.framework === "cra";
+  const isVite = config.framework === "vite";
+  const isNext = config.framework === "next";
 
   const vOpts = {
     preset: config.preset,
@@ -19,60 +20,59 @@ export async function getTestingIntegration(config: ProjectConfig): Promise<{
 
   const vitestVer = await getVersion("vitest", vOpts);
 
-  const pkg: Partial<PackageJsonConfig> = isCra
-    ? {
-        devDependencies: {
-          "@testing-library/jest-dom": "^6.6.2",
-          "@testing-library/react": "^16.1.0",
-          "@testing-library/user-event": "^14.5.2",
-        },
-      }
-    : {
-        scripts: {
-          test: "vitest run",
-          "test:watch": "vitest",
-          "test:coverage": "vitest run --coverage",
-        },
-        devDependencies: {
-          vitest: vitestVer,
-          "@testing-library/react": "^16.1.0",
-          "@testing-library/jest-dom": "^6.6.2",
-          "@testing-library/user-event": "^14.5.2",
-          jsdom: "^25.0.1",
-        },
-      };
+  let pkg: Partial<PackageJsonConfig> = {};
+
+  if (isVite) {
+    pkg = {
+      scripts: {
+        test: "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
+      },
+      devDependencies: {
+        vitest: vitestVer,
+        "@testing-library/react": "^16.1.0",
+        "@testing-library/jest-dom": "^6.6.2",
+        "@testing-library/user-event": "^14.5.2",
+        jsdom: "^25.0.1",
+      },
+    };
+  } else if (isNext) {
+    pkg = {
+      scripts: {
+        test: "jest --verbose",
+        "test:watch": "jest --watch",
+      },
+      devDependencies: {
+        "@testing-library/react": "^16.1.0",
+        "@testing-library/jest-dom": "^6.6.2",
+        jest: "^29.7.0",
+        "jest-environment-jsdom": "^29.7.0",
+      },
+    };
+  } else {
+    // CRA
+    pkg = {
+      devDependencies: {
+        "@testing-library/jest-dom": "^6.6.2",
+        "@testing-library/react": "^16.1.0",
+        "@testing-library/user-event": "^14.5.2",
+      },
+    };
+  }
 
   const setupContent = `import '@testing-library/jest-dom';
 `;
 
-  const vitestConfigContent = `import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
-import path from 'path';
-
-export default defineConfig({
-  plugins: [react()],
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/tests/setup.${ext}'],
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-});
-`;
-
-  const sampleTestContent = `import { describe, it, expect } from 'vitest';
+  const sampleTestContent = `import { describe, it, expect } from '${isVite ? "vitest" : "@jest/globals"}';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-const SampleHeading = () => <h1>Welcome to DevBlueprint</h1>;
+const SampleHeader = () => <h1>Welcome to DevBlueprint</h1>;
 
-describe('DevBlueprint Core App', () => {
+describe('Application Core Header', () => {
   it('renders application header properly', () => {
-    render(<SampleHeading />);
+    render(<SampleHeader />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
       'Welcome to DevBlueprint'
     );
@@ -91,10 +91,28 @@ describe('DevBlueprint Core App', () => {
     },
   ];
 
-  if (!isCra) {
+  // ONLY add vitest.config.ts when framework is Vite!
+  if (isVite) {
     files.push({
       path: `vitest.config.${ext}`,
-      content: vitestConfigContent,
+      content: `import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/tests/setup.${ext}'],
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+});
+`,
     });
   }
 

@@ -7,6 +7,7 @@ export async function getMuiIntegration(config: ProjectConfig): Promise<{
 }> {
   const isTs = config.language === "typescript";
   const ext = isTs ? "ts" : "js";
+  const compExt = isTs ? "tsx" : "jsx";
 
   const vOpts = {
     preset: config.preset,
@@ -75,10 +76,31 @@ export const muiTheme = createTheme({
 export default muiTheme;
 `;
 
+  const themeProviderContent = `"use client";
+import React from 'react';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import muiTheme from '@/styles/theme';
+
+export const ThemeWrapperProvider = ({ children }${isTs ? ": { children: React.ReactNode }" : ""}) => {
+  return (
+    <ThemeProvider theme={muiTheme}>
+      <CssBaseline />
+      {children}
+    </ThemeProvider>
+  );
+};
+
+export default ThemeWrapperProvider;
+`;
+
   const files: FileTreeItem[] = [
     {
       path: `src/styles/theme.${ext}`,
       content: themeContent,
+    },
+    {
+      path: `src/provider/theme.provider.${compExt}`,
+      content: themeProviderContent,
     },
   ];
 
