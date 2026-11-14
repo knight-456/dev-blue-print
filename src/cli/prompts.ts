@@ -100,14 +100,14 @@ export async function runInteractivePrompts(
     initialValue: "vite",
     options: [
       {
-        value: "vite",
-        label: "Vite + React (Recommended)",
-        hint: "Fast HMR, ESM bundling, React Router DOM",
+        value: "next",
+        label: "Next.js (App Router) (Recommended)",
+        hint: "Fullstack SSR/SSG with Next 16 Turbopack",
       },
       {
-        value: "next",
-        label: "Next.js (App Router)",
-        hint: "Fullstack SSR/SSG with Next 16 Turbopack",
+        value: "vite",
+        label: "Vite + React",
+        hint: "Fast HMR, ESM bundling, React Router DOM",
       },
       {
         value: "cra",
@@ -214,7 +214,7 @@ export async function runInteractivePrompts(
     for (const item of FOLDER_DEFINITIONS) {
       const include = await p.confirm({
         message: `Include ${pc.bold(item.label)} - ${pc.dim(item.hint)}?`,
-        initialValue: false,
+        initialValue: true,
       });
 
       if (p.isCancel(include)) {
@@ -228,95 +228,130 @@ export async function runInteractivePrompts(
     }
   }
 
-  // 6. Integrations (Only show relevant integrations based on selected folders)
-  const availableIntegrations: { value: Integration; label: string; hint?: string }[] = [];
+  // 6. Integrations Selection
+  const selectedIntegrations: Integration[] = [];
 
+  // Libraries automatically included because of dependent folders selected in step 5:
+  const autoIncluded: { integration: Integration; name: string; reason: string }[] = [];
+
+  // Redux: strictly required when store or redux folder is selected
   if (selectedFolders.includes("store") || selectedFolders.includes("redux")) {
-    availableIntegrations.push({
-      value: "redux",
-      label: "Redux Toolkit",
-      hint: "Predictable client-side state slices",
+    autoIncluded.push({
+      integration: "redux",
+      name: "Redux Toolkit",
+      reason: "required by src/store and/or src/redux",
     });
   }
 
-  if (selectedFolders.includes("provider")) {
-    availableIntegrations.push({
-      value: "query",
-      label: "TanStack React Query",
-      hint: "QueryClient provider, cache, and custom query hooks",
+  // Axios: strictly required when apiInstance, interceptors, or services folder is selected
+  if (
+    selectedFolders.includes("apiInstance") ||
+    selectedFolders.includes("interceptors") ||
+    selectedFolders.includes("services")
+  ) {
+    autoIncluded.push({
+      integration: "axios",
+      name: "Axios Client",
+      reason: "required by src/apiInstance, src/interceptors, and/or src/services",
     });
   }
 
-  if (selectedFolders.includes("apiInstance") || selectedFolders.includes("services")) {
-    availableIntegrations.push({
-      value: "axios",
-      label: "Axios Client",
-      hint: "HTTP client with auth interceptors",
-    });
+  // Auto-add dependent integrations without asking
+  for (const item of autoIncluded) {
+    selectedIntegrations.push(item.integration);
   }
 
-  availableIntegrations.push(
-    {
-      value: "tailwind",
-      label: "Tailwind CSS (v4 PostCSS)",
-      hint: "CSS variables, @import tailwindcss, theme tokens",
-    },
-    {
-      value: "mui",
-      label: "Material UI (MUI v6/v7)",
-      hint: "MUI ThemeProvider, CssBaseline, icons & date pickers",
-    }
-  );
-
-  if (selectedFolders.includes("components")) {
-    availableIntegrations.push({
-      value: "shadcn",
-      label: "shadcn/ui",
-      hint: "components.json, cn utility, Radix-based Button",
-    });
-  }
-
-  if (selectedFolders.includes("utils")) {
-    availableIntegrations.push(
-      {
-        value: "dayjs",
-        label: "Day.js",
-        hint: "Relative time, UTC, timezone, formatting helpers",
-      },
-      {
-        value: "cookies",
-        label: "Cookies & Toast",
-        hint: "cookies-next, react-hot-toast, auth cookies helper",
-      }
+  if (autoIncluded.length > 0) {
+    p.log.info(
+      pc.green("Auto-included libraries based on selected folders:\n") +
+        autoIncluded
+          .map((item) => `  ${pc.bold("✓")} ${pc.cyan(item.name)} ${pc.dim(`(${item.reason})`)}`)
+          .join("\n")
     );
   }
 
-  availableIntegrations.push(
+  // Candidate libraries to ask individually
+  const candidateIntegrations: {
+    integration: Integration;
+    label: string;
+    hint: string;
+    allowed: boolean;
+  }[] = [
     {
-      value: "forms",
-      label: "React Hook Form + Zod",
-      hint: "High-performance schema validation & LoginForm",
+      integration: "query",
+      label: "TanStack React Query",
+      hint: "QueryClient provider, cache, and custom query hooks",
+      allowed: selectedFolders.includes("provider") || folderMode === "all",
     },
     {
-      value: "testing",
+      integration: "tailwind",
+      label: "Tailwind CSS (v4 PostCSS)",
+      hint: "CSS variables, @import tailwindcss, theme tokens",
+      allowed: true,
+    },
+    {
+      integration: "mui",
+      label: "Material UI (MUI v6/v7)",
+      hint: "MUI ThemeProvider, CssBaseline, icons & date pickers",
+      allowed: true,
+    },
+    {
+      integration: "shadcn",
+      label: "shadcn/ui",
+      hint: "components.json, cn utility, Radix-based Button",
+      allowed: selectedFolders.includes("components") || folderMode === "all",
+    },
+    {
+      integration: "dayjs",
+      label: "Day.js",
+      hint: "Relative time, UTC, timezone, formatting helpers",
+      allowed: selectedFolders.includes("utils") || folderMode === "all",
+    },
+    {
+      integration: "cookies",
+      label: "Cookies & Toast",
+      hint: "cookies-next, react-hot-toast, auth cookies helper",
+      allowed: selectedFolders.includes("utils") || folderMode === "all",
+    },
+    {
+      integration: "forms",
+      label: "React Hook Form + Zod",
+      hint: "High-performance schema validation & LoginForm",
+      allowed: true,
+    },
+    {
+      integration: "testing",
       label: "Testing Setup (Jest / Vitest + RTL)",
       hint: "Unit & component testing setup",
+      allowed: true,
+    },
+  ];
+
+  p.log.step(pc.cyan("Configure additional libraries individually:"));
+  for (const item of candidateIntegrations) {
+    // If already included via folder dependency, do not ask
+    if (selectedIntegrations.includes(item.integration)) {
+      continue;
     }
-  );
 
-  const integrations = await p.multiselect<
-    { value: Integration; label: string; hint?: string }[],
-    Integration
-  >({
-    message: "Select integrations to include:",
-    initialValues: availableIntegrations.map((i) => i.value),
-    options: availableIntegrations,
-    required: false,
-  });
+    // If prerequisite folder is missing, skip
+    if (!item.allowed) {
+      continue;
+    }
 
-  if (p.isCancel(integrations)) {
-    p.cancel("Operation cancelled by user.");
-    process.exit(0);
+    const include = await p.confirm({
+      message: `Include ${pc.bold(item.label)} - ${pc.dim(item.hint)}?`,
+      initialValue: true,
+    });
+
+    if (p.isCancel(include)) {
+      p.cancel("Operation cancelled by user.");
+      process.exit(0);
+    }
+
+    if (include) {
+      selectedIntegrations.push(item.integration);
+    }
   }
 
   // 7. Package Manager
@@ -342,7 +377,7 @@ export async function runInteractivePrompts(
   // 8. Install dependencies now?
   const installDeps = await p.confirm({
     message: "Install dependencies now?",
-    initialValue: false,
+    initialValue: true,
   });
 
   if (p.isCancel(installDeps)) {
@@ -358,7 +393,7 @@ export async function runInteractivePrompts(
     architecture: folderMode === "all" ? "enterprise" : "modular",
     preset: preset as VersionPreset,
     folders: selectedFolders,
-    integrations: integrations as Integration[],
+    integrations: selectedIntegrations as Integration[],
     packageManager: packageManager as PackageManager,
     installDeps: installDeps as boolean,
     initGit: true,
