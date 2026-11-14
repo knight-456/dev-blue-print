@@ -24,7 +24,7 @@ export async function getReduxIntegration(config: ProjectConfig): Promise<{
     },
   };
 
-  // 1. rootReducer.ts matching production pattern
+  // 1. rootReducer.ts matching production pattern (NO root-reducer.ts)
   const rootReducerContent = `import { combineReducers } from '@reduxjs/toolkit';
 import localsSlice from '@/redux/local/slice';
 import authSlice from '@/redux/auth/slice';
@@ -53,14 +53,14 @@ const rootReducer = combineReducers({
 export default rootReducer;
 `;
 
-  // 2. store/index.ts
+  // 2. store/index.ts with explicit type for getDefaultMiddleware (fixes TS7006)
   const storeIndexContent = isTs
     ? `import { configureStore } from '@reduxjs/toolkit';
 import rootReducer from './rootReducer';
 
 const store = configureStore({
   reducer: rootReducer,
-  middleware: (getDefaultMiddleware) =>
+  middleware: (getDefaultMiddleware: any) =>
     getDefaultMiddleware({
       serializableCheck: false,
     }),
@@ -129,13 +129,13 @@ const locals = createSlice({
     toggleSidebar: (state) => {
       state.sidebarOpen = !state.sidebarOpen;
     },
-    setSidebarOpen: (state, { payload }) => {
+    setSidebarOpen: (state, { payload }: any) => {
       state.sidebarOpen = payload;
     },
-    setThemeMode: (state, { payload }) => {
+    setThemeMode: (state, { payload }: any) => {
       state.themeMode = payload;
     },
-    setModal: (state, { payload }) => {
+    setModal: (state, { payload }: any) => {
       state.modal = payload;
     },
     resetModal: (state) => {
@@ -192,12 +192,12 @@ const auth = createSlice({
   name: 'auth',
   initialState: authInitialState,
   reducers: {
-    setCredentials: (state, { payload }) => {
+    setCredentials: (state, { payload }: any) => {
       state.user = payload.user;
       state.token = payload.token;
       state.isAuthenticated = true;
     },
-    setLoading: (state, { payload }) => {
+    setLoading: (state, { payload }: any) => {
       state.isLoading = payload;
     },
     logout: (state) => {
@@ -248,10 +248,10 @@ const pagesInfo = createSlice({
   name: 'pagesInfo',
   initialState: pagesInfoInitialState,
   reducers: {
-    setCurrentPage: (state, { payload }) => {
+    setCurrentPage: (state, { payload }: any) => {
       state.currentPage = payload;
     },
-    setBreadcrumbs: (state, { payload }) => {
+    setBreadcrumbs: (state, { payload }: any) => {
       state.breadcrumbs = payload;
     },
   },
@@ -269,10 +269,6 @@ export default pagesInfo.reducer;
     {
       path: `src/store/rootReducer.${ext}`,
       content: rootReducerContent,
-    },
-    {
-      path: `src/store/root-reducer.${ext}`,
-      content: `export { default } from './rootReducer';\n`,
     },
     // redux/local
     {

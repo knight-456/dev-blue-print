@@ -45,9 +45,8 @@ export const APP_NAME = '${config.projectName}';
     });
   }
 
-  // 2. Utils: pages-info.utils.ts (Point 3) & utils.data.ts & local.cookies.ts
+  // 2. Utils: pages-info.utils.ts (Point 3) & utils.data.ts
   if (hasFolder("utils")) {
-    // utils.data.ts
     files.push({
       path: `src/utils/utils.data.${ext}`,
       content: `export const userRoleConst = Object.freeze({
@@ -66,7 +65,6 @@ export const cookiesConst = Object.freeze({
 `,
     });
 
-    // pages-info.utils.ts with regex, path replacements & validations (Point 3)
     files.push({
       path: `src/utils/pages-info.utils.${ext}`,
       content: `import { userRoleConst } from './utils.data';
@@ -119,12 +117,12 @@ export const pagesInfo = {
     });
   }
 
-  // 3. Hooks: useDebounce.ts & useStore.hooks.ts (Point 5) & useLocalStorage.ts
+  // 3. Hooks: useDebounce.ts & useStore.hooks.ts & useLocalStorage.ts
   if (hasFolder("hooks")) {
     files.push({
       path: `src/hooks/useDebounce.${ext}`,
       content: `"use client";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export const useDebounce = <T,>(value: T, delay = 500): T => {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -168,7 +166,7 @@ export { useAppState as useAppSelector, useAppDispatcher as useAppDispatch };
     files.push({
       path: `src/hooks/useLocalStorage.${ext}`,
       content: `"use client";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -201,7 +199,6 @@ export default useLocalStorage;
 
   // 4. Services: auth & dashboard each with .service.ts, .const.ts, and .types.ts (Point 9)
   if (hasFolder("services")) {
-    // Auth service
     files.push({
       path: `src/services/auth/auth.const.${ext}`,
       content: `export const authUrlEnums = Object.freeze({
@@ -293,7 +290,6 @@ export default AuthService.authService;
 `,
     });
 
-    // Dashboard service
     files.push({
       path: `src/services/dashboard/dashboard.const.${ext}`,
       content: `export const dashboardUrlEnums = Object.freeze({
@@ -360,7 +356,7 @@ export default DashboardService.dashboardService;
     });
   }
 
-  // 5. Components: DashboardView & Loaders (Point 4: no features folder)
+  // 5. Components: DashboardView & Loaders
   if (hasFolder("components")) {
     files.push({
       path: `src/components/loaders/full-page-loader.${compExt}`,
@@ -439,8 +435,63 @@ export default DashboardView;
     });
   }
 
-  // 6. Providers: each file has provider before extension (Point 7)
+  // 6. Providers: store.provider, navbar.provider, modal.provider, layout.provider, index (Point 3 & 7)
   if (hasFolder("provider")) {
+    // modal.provider.tsx (Point 3)
+    files.push({
+      path: `src/provider/modal.provider.${compExt}`,
+      content: `"use client";
+import React, { createContext, useContext, useState, useCallback } from 'react';
+
+export interface ModalState {
+  isOpen: boolean;
+  type?: string;
+  data?: any;
+  title?: string;
+  isLoading?: boolean;
+}
+
+export interface ModalContextType {
+  modal: ModalState;
+  openModal: (type: string, data?: any, title?: string) => void;
+  closeModal: () => void;
+  setModalLoading: (loading: boolean) => void;
+}
+
+const ModalContext = createContext<ModalContextType>({
+  modal: { isOpen: false },
+  openModal: () => {},
+  closeModal: () => {},
+  setModalLoading: () => {},
+});
+
+export const ModalProvider = ({ children }: { children?: React.ReactNode }) => {
+  const [modal, setModal] = useState<ModalState>({ isOpen: false });
+
+  const openModal = useCallback((type: string, data?: any, title?: string) => {
+    setModal({ isOpen: true, type, data, title, isLoading: false });
+  }, []);
+
+  const closeModal = useCallback(() => {
+    setModal({ isOpen: false, data: null, type: undefined, title: undefined, isLoading: false });
+  }, []);
+
+  const setModalLoading = useCallback((isLoading: boolean) => {
+    setModal((prev) => ({ ...prev, isLoading }));
+  }, []);
+
+  return (
+    <ModalContext.Provider value={{ modal, openModal, closeModal, setModalLoading }}>
+      {children}
+    </ModalContext.Provider>
+  );
+};
+
+export const useModal = () => useContext(ModalContext);
+export default ModalProvider;
+`,
+    });
+
     files.push({
       path: `src/provider/store.provider.${compExt}`,
       content: hasRedux
@@ -449,14 +500,14 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import store from '@/store';
 
-export const StoreProvider = ({ children }${isTs ? ": { children: React.ReactNode }" : ""}) => {
+export const StoreProvider = ({ children }: { children?: React.ReactNode }) => {
   return <Provider store={store}>{children}</Provider>;
 };
 
 export default StoreProvider;
 `
         : `import React from 'react';
-export const StoreProvider = ({ children }${isTs ? ": { children: React.ReactNode }" : ""}) => <>{children}</>;
+export const StoreProvider = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
 export default StoreProvider;
 `,
     });
@@ -471,12 +522,12 @@ interface NavbarContextType {
   toggleSidebar: () => void;
 }
 
-const NavbarContext = createContext${isTs ? "<NavbarContextType>" : ""}({
+const NavbarContext = createContext<NavbarContextType>({
   sidebarOpen: true,
   toggleSidebar: () => {},
 });
 
-export const NavbarProvider = ({ children }${isTs ? ": { children: React.ReactNode }" : ""}) => {
+export const NavbarProvider = ({ children }: { children?: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
@@ -497,7 +548,7 @@ export default NavbarProvider;
       content: `"use client";
 import React from 'react';
 ${hasMui ? `import ThemeWrapperProvider from './theme.provider';\n` : ""}${hasQuery ? `import QueryProvider from './query.provider';\n` : ""}${hasToast ? `import { Toaster } from 'react-hot-toast';\n` : ""}
-export const LayoutProvider = ({ children }${isTs ? ": { children: React.ReactNode }" : ""}) => {
+export const LayoutProvider = ({ children }: { children?: React.ReactNode }) => {
   let content = (
     <>
       {children}
@@ -522,15 +573,18 @@ ${hasFolder("components") ? `import FullPageLoader from '@/components/loaders/fu
 import StoreProvider from './store.provider';
 import LayoutProvider from './layout.provider';
 import NavbarProvider from './navbar.provider';
+import ModalProvider from './modal.provider';
 
-export const Provider = ({ children }${isTs ? ": { children: React.ReactNode }" : ""}) => {
+export const Provider = ({ children }: { children?: React.ReactNode }) => {
   return (
     <Suspense ${hasFolder("components") ? `fallback={<FullPageLoader isLoading={true} />}` : `fallback={<div>Loading...</div>}`}>
       <StoreProvider>
         <NavbarProvider>
-          <LayoutProvider>
-            {children}
-          </LayoutProvider>
+          <ModalProvider>
+            <LayoutProvider>
+              {children}
+            </LayoutProvider>
+          </ModalProvider>
         </NavbarProvider>
       </StoreProvider>
     </Suspense>
@@ -538,12 +592,12 @@ export const Provider = ({ children }${isTs ? ": { children: React.ReactNode }" 
 };
 
 export default Provider;
-export { StoreProvider, LayoutProvider, NavbarProvider };
+export { StoreProvider, LayoutProvider, NavbarProvider, ModalProvider };
 `,
     });
   }
 
-  // 7. Framework Specific App / Routes (No separate layouts/ folder, Point 6)
+  // 7. Framework Specific App / Routes
   if (isNext) {
     files.push({
       path: `src/proxy.${ext}`,
@@ -568,7 +622,8 @@ export const config = {
 
     files.push({
       path: `src/app/layout.${compExt}`,
-      content: `import '@/globals.css';
+      content: `import React from 'react';
+import '@/globals.css';
 import '@/theme.css';
 ${hasFolder("provider") ? `import Provider from '@/provider';\n` : ""}
 export const metadata = {
@@ -578,7 +633,9 @@ export const metadata = {
 
 export default function RootLayout({
   children,
-}${isTs ? ": { children: React.ReactNode }" : ""}) {
+}: {
+  children?: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body className="antialiased min-h-screen bg-slate-50 text-slate-900">
@@ -592,7 +649,8 @@ export default function RootLayout({
 
     files.push({
       path: `src/app/page.${compExt}`,
-      content: `${hasFolder("components") ? `import DashboardView from '@/components/dashboard/dashboard-view';\n` : ""}
+      content: `import React from 'react';
+${hasFolder("components") ? `import DashboardView from '@/components/dashboard/dashboard-view';\n` : ""}
 export default function HomePage() {
   return (
     <main className="min-h-screen py-10">
