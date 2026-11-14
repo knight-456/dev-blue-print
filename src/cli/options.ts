@@ -10,6 +10,7 @@ export function createCliCommand(): Command {
     .version("1.0.0")
     .argument("[project-name]", "Target project name and directory")
     .option("-f, --framework <type>", "Framework to use: vite | next | cra")
+    .option("--router <type>", "Next.js router type: app | pages", "app")
     .option("-l, --language <lang>", "Language to use: typescript | javascript")
     .option("-a, --architecture <arch>", "Architecture pattern: enterprise | modular | minimal", "enterprise")
     .option(
@@ -48,6 +49,8 @@ export function parseCliOptions(program: Command, argv = process.argv): {
   const options: Partial<CLIOptions> = {
     name: projectName,
     framework: opts.framework as Framework,
+    nextRouter: opts.router as ("app" | "pages"),
+    router: opts.router as ("app" | "pages"),
     language: opts.language as Language,
     architecture: opts.architecture,
     folders: opts.folders as ProjectFolder[],

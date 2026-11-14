@@ -49,6 +49,7 @@ export interface ProjectConfig {
   preset: VersionPreset;
   packageOverrides?: Record<string, string>;
   fetchLatest?: boolean;
+  nextRouter?: "app" | "pages";
 }
 
 export interface CLIOptions {
@@ -66,6 +67,8 @@ export interface CLIOptions {
   pkg?: string[];
   packageVersions?: string;
   fetchLatest?: boolean;
+  nextRouter?: "app" | "pages";
+  router?: "app" | "pages";
 }
 
 export interface ValidationResult {

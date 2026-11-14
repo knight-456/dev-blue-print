@@ -47,6 +47,9 @@ export async function getNextConfig(config: ProjectConfig): Promise<{
     },
   };
 
+  const hasMui = config.integrations.includes("mui");
+  const isApp = config.nextRouter !== "pages";
+
   const files: FileTreeItem[] = [
     {
       path: isTs ? "next.config.ts" : "next.config.mjs",
@@ -54,7 +57,7 @@ export async function getNextConfig(config: ProjectConfig): Promise<{
         ? `import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: true,${hasMui ? `\n  compiler: {\n    emotion: true,\n  },` : ""}
   images: {
     remotePatterns: [
       {
@@ -68,7 +71,7 @@ const nextConfig: NextConfig = {
 export default nextConfig;`
         : `/** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: true,${hasMui ? `\n  compiler: {\n    emotion: true,\n  },` : ""}
   images: {
     remotePatterns: [
       {
@@ -102,16 +105,20 @@ export default nextConfig;`,
             isolatedModules: true,
             jsx: "preserve",
             incremental: true,
-            plugins: [
-              {
-                name: "next",
-              },
-            ],
+            plugins: isApp
+              ? [
+                  {
+                    name: "next",
+                  },
+                ]
+              : undefined,
             paths: {
               "@/*": ["./src/*"],
             },
           },
-          include: ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+          include: isApp
+            ? ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"]
+            : ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
           exclude: ["node_modules"],
         },
         null,
@@ -120,7 +127,7 @@ export default nextConfig;`,
     });
     files.push({
       path: "next-env.d.ts",
-      content: '/// <reference types="next" />\n/// <reference types="next/image-types/global" />\n\n// NOTE: This file should not be edited\n// see https://nextjs.org/docs/basic-features/typescript for more information.\n',
+      content: '/// <reference types="next" />\n/// <reference types="next/image-types/global" />\n/// <reference types="react" />\n/// <reference types="react/jsx-runtime" />\n\n// NOTE: This file should not be edited\n// see https://nextjs.org/docs/basic-features/typescript for more information.\n',
     });
   } else {
     files.push({

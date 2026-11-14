@@ -105,6 +105,11 @@ export async function runInteractivePrompts(
         hint: "Fullstack SSR/SSG with Next 16 Turbopack",
       },
       {
+        value: "next",
+        label: "Next.js (Pages Router)",
+        hint: "Fullstack SSR/SSG with Next 16 Turbopack",
+      },
+      {
         value: "vite",
         label: "Vite + React",
         hint: "Fast HMR, ESM bundling, React Router DOM",
@@ -120,6 +125,36 @@ export async function runInteractivePrompts(
   if (p.isCancel(framework)) {
     p.cancel("Operation cancelled by user.");
     process.exit(0);
+  }
+
+  // 2b. Next.js Router (App Router vs Pages Router)
+  let nextRouter: "app" | "pages" = "app";
+  if (framework === "next") {
+    const routerChoice = await p.select<
+      { value: "app" | "pages"; label: string; hint?: string }[],
+      "app" | "pages"
+    >({
+      message: "Select Next.js Router:",
+      initialValue: "app",
+      options: [
+        {
+          value: "app",
+          label: "App Router (Recommended)",
+          hint: "Modern React Server Components, app/ layout and page files",
+        },
+        {
+          value: "pages",
+          label: "Pages Router",
+          hint: "Traditional Next.js file-system routing with pages/ _app, _document",
+        },
+      ],
+    });
+
+    if (p.isCancel(routerChoice)) {
+      p.cancel("Operation cancelled by user.");
+      process.exit(0);
+    }
+    nextRouter = routerChoice;
   }
 
   // 3. Language
@@ -389,6 +424,7 @@ export async function runInteractivePrompts(
     projectName: projectName as string,
     targetDir: projectName as string,
     framework: framework as Framework,
+    nextRouter: nextRouter,
     language: language as Language,
     architecture: folderMode === "all" ? "enterprise" : "modular",
     preset: preset as VersionPreset,

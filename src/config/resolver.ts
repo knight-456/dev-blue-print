@@ -81,6 +81,12 @@ export function resolveConfiguration(
       ? promptAnswers.fetchLatest
       : DEFAULT_CONFIG.fetchLatest;
 
+  const nextRouter =
+    args.nextRouter ||
+    args.router ||
+    promptAnswers?.nextRouter ||
+    "app";
+
   // Parse package overrides
   const packageOverrides: Record<string, string> = {
     ...(DEFAULT_CONFIG.packageOverrides || {}),
@@ -121,5 +127,6 @@ export function resolveConfiguration(
     preset,
     packageOverrides,
     fetchLatest,
+    nextRouter,
   };
 }

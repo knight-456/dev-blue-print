@@ -30,7 +30,7 @@ export async function getCookiesAndUiIntegration(config: ProjectConfig): Promise
 
   const cookiesContent = `import { setCookie as setCookieNext, getCookie as getCookieNext, deleteCookie } from 'cookies-next';
 
-export const setCookie = (key${isTs ? ": string" : ""}, value${isTs ? ": any" : ""}, options${isTs ? "?: any" : ""} = {}) => {
+export const setCookie = (key${isTs ? ": string" : ""}, value${isTs ? ": any" : ""}, options${isTs ? ": any" : ""} = {}) => {
   setCookieNext(key, value, {
     maxAge: 30 * 24 * 60 * 60, // 30 days
     path: '/',

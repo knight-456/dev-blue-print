@@ -169,7 +169,7 @@ export const axiosAuthInterceptor = (instance${isTs ? ": AxiosInstance" : ": any
 
   const files: FileTreeItem[] = [
     {
-      path: `src/apiInstance/axios.apiInstance.${compExt}`,
+      path: `src/apiInstance/axios.apiInstance.${ext}`,
       content: apiInstanceContent,
     },
     {

@@ -580,7 +580,8 @@ export default LayoutProvider;
 
     files.push({
       path: `src/provider/index.${compExt}`,
-      content: `import React, { Suspense } from 'react';
+      content: `"use client";
+import React, { Suspense } from 'react';
 ${hasFolder("components") ? `import FullPageLoader from '@/components/loaders/full-page-loader';` : ""}
 import StoreProvider from './store.provider';
 import LayoutProvider from './layout.provider';
@@ -632,9 +633,85 @@ export const config = {
 `,
     });
 
-    files.push({
-      path: `src/app/layout.${compExt}`,
-      content: `import React from 'react';
+    if (config.nextRouter === "pages") {
+      // Pages Router
+      files.push({
+        path: `src/pages/_app.${compExt}`,
+        content: `import React from 'react';
+${isTs ? "import type { AppProps } from 'next/app';\n" : ""}import '@/globals.css';
+import '@/theme.css';
+${hasFolder("provider") ? `import Provider from '@/provider';\n` : ""}
+export default function App({ Component, pageProps }${isTs ? ": AppProps" : ""}) {
+  return (
+    ${hasFolder("provider") ? `<Provider><Component {...pageProps} /></Provider>` : `<Component {...pageProps} />`}
+  );
+}
+`,
+      });
+
+      files.push({
+        path: `src/pages/_document.${compExt}`,
+        content: `import { Html, Head, Main, NextScript } from 'next/document';
+import React from 'react';
+
+export default function Document() {
+  return (
+    <Html lang="en">
+      <Head />
+      <body className="antialiased min-h-screen bg-slate-50 text-slate-900">
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  );
+}
+`,
+      });
+
+      files.push({
+        path: `src/pages/index.${compExt}`,
+        content: `import React from 'react';
+import Head from 'next/head';
+${hasFolder("components") ? `import DashboardView from '@/components/dashboard/dashboard-view';\n` : ""}
+export default function HomePage() {
+  return (
+    <>
+      <Head>
+        <title>${config.projectName} - DevBlueprint</title>
+        <meta name="description" content="Enterprise Scaffolding built with DevBlueprint" />
+      </Head>
+      <main className="min-h-screen py-10">
+        ${hasFolder("components") ? `<DashboardView />` : `<div className="p-8 font-bold text-2xl">Welcome to ${config.projectName}</div>`}
+      </main>
+    </>
+  );
+}
+`,
+      });
+
+      files.push({
+        path: `src/pages/404.${compExt}`,
+        content: `import React from 'react';
+import Link from 'next/link';
+
+export default function Custom404() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+      <h1 className="text-6xl font-bold text-slate-900">404</h1>
+      <p className="mt-2 text-lg text-slate-600">Page not found</p>
+      <Link href="/" className="mt-6 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">
+        Return Home
+      </Link>
+    </div>
+  );
+}
+`,
+      });
+    } else {
+      // App Router (default)
+      files.push({
+        path: `src/app/layout.${compExt}`,
+        content: `import React from 'react';
 import '@/globals.css';
 import '@/theme.css';
 ${hasFolder("provider") ? `import Provider from '@/provider';\n` : ""}
@@ -655,11 +732,11 @@ export default function RootLayout({
   );
 }
 `,
-    });
+      });
 
-    files.push({
-      path: `src/app/page.${compExt}`,
-      content: `import React from 'react';
+      files.push({
+        path: `src/app/page.${compExt}`,
+        content: `import React from 'react';
 ${hasFolder("components") ? `import DashboardView from '@/components/dashboard/dashboard-view';\n` : ""}
 export default function HomePage() {
   return (
@@ -669,7 +746,27 @@ export default function HomePage() {
   );
 }
 `,
-    });
+      });
+
+      files.push({
+        path: `src/app/not-found.${compExt}`,
+        content: `import React from 'react';
+import Link from 'next/link';
+
+export default function NotFound() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+      <h1 className="text-6xl font-bold text-slate-900">404</h1>
+      <p className="mt-2 text-lg text-slate-600">Page not found</p>
+      <Link href="/" className="mt-6 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition">
+        Return Home
+      </Link>
+    </div>
+  );
+}
+`,
+      });
+    }
   } else {
     // Vite & CRA
     files.push({
