@@ -47,6 +47,8 @@ export async function mergePackageJson(
   }
 
   const merged: PackageJsonConfig = {
+    ...existing,
+    ...base,
     name: base.name || existing.name || "devblueprint-project",
     version: base.version || existing.version || "0.1.0",
     private: true,
@@ -63,6 +65,14 @@ export async function mergePackageJson(
       ...(existing.devDependencies || {}),
       ...(base.devDependencies || {}),
     }),
+    ...(existing.overrides || base.overrides
+      ? {
+          overrides: {
+            ...((existing.overrides as Record<string, string>) || {}),
+            ...((base.overrides as Record<string, string>) || {}),
+          },
+        }
+      : {}),
   };
 
   await fs.writeJson(pkgPath, merged, { spaces: 2 });

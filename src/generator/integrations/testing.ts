@@ -49,6 +49,9 @@ export async function getTestingIntegration(config: ProjectConfig): Promise<{
         jest: "^29.7.0",
         "jest-environment-jsdom": "^29.7.0",
       },
+      overrides: {
+        deepmerge: "4.1.0",
+      },
     };
   } else {
     // CRA

@@ -9,14 +9,14 @@ export const ENTERPRISE_VERSIONS: Record<string, string> = {
   // Core React & Next
   react: "19.2.3",
   "react-dom": "19.2.3",
-  next: "16.1.1",
+  next: "^16.4.6",
   "@types/react": "^19",
   "@types/react-dom": "^19",
 
   // Styling & PostCSS (Tailwind v4 stack)
   tailwindcss: "^4",
   "@tailwindcss/postcss": "^4",
-  postcss: "^8.5.4",
+  postcss: "^8.5.33",
   sass: "^1.96.0",
 
   // Material UI & Emotion (Verified peer compatibility)
@@ -31,11 +31,11 @@ export const ENTERPRISE_VERSIONS: Record<string, string> = {
   "react-redux": "^9.2.0",
   "@tanstack/react-query": "^5.66.0",
   "@tanstack/react-query-devtools": "^5.66.0",
-  axios: "^1.13.2",
+  axios: "^1.21.1",
 
   // Forms & Validation
   "react-hook-form": "^7.71.1",
-  zod: "^3.24.0",
+  zod: "^4.6.7",
   "@hookform/resolvers": "^3.9.1",
 
   // Utilities, Cookies & Animation
@@ -64,19 +64,20 @@ export const LATEST_VERSIONS: Record<string, string> = {
   ...ENTERPRISE_VERSIONS,
   react: "^19.0.0",
   "react-dom": "^19.0.0",
-  next: "^16.0.0",
+  next: "^16.4.6",
   "@types/react": "^19.0.0",
   "@types/react-dom": "^19.0.0",
   tailwindcss: "^4.0.0",
   "@tailwindcss/postcss": "^4.0.0",
+  postcss: "^8.5.33",
   "react-router-dom": "^7.1.5",
   "@tanstack/react-query": "^5.66.0",
-  "@reduxjs/toolkit": "^2.5.0",
+  "@reduxjs/toolkit": "^2.11.2",
   "react-redux": "^9.2.0",
-  axios: "^1.8.0",
+  axios: "^1.21.1",
   dayjs: "^1.11.19",
   "react-hook-form": "^7.54.0",
-  zod: "^3.24.0",
+  zod: "^4.6.7",
   "@hookform/resolvers": "^3.9.1",
   "lucide-react": "^0.475.0",
 };

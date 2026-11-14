@@ -13,7 +13,7 @@ describe("Package Version Registry Engine", () => {
     const tailwindVer = await getVersion("tailwindcss", { preset: "enterprise" });
 
     expect(reactVer).toBe("19.2.3");
-    expect(nextVer).toBe("16.1.1");
+    expect(nextVer).toBe("^16.4.6");
     expect(tailwindVer).toBe("^4");
   });
 
@@ -41,7 +41,7 @@ describe("Package Version Registry Engine", () => {
     });
 
     expect(resolved.react).toBe("19.2.3");
-    expect(resolved.next).toBe("16.1.1");
+    expect(resolved.next).toBe("^16.4.6");
     expect(resolved.axios).toBe("^1.9.9");
   });
 });

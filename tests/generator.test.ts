@@ -77,7 +77,7 @@ describe("Project Generator Engine (Enterprise Architecture & Custom Folders)", 
 
     // Verify Point 2: Emotion and MUI peer versions
     const pkg = await fs.readJson(path.join(config.targetDir, "package.json"));
-    expect(pkg.dependencies.next).toBe("16.1.1");
+    expect(pkg.dependencies.next).toBe("^16.4.6");
     expect(pkg.dependencies.react).toBe("19.2.3");
     expect(pkg.dependencies["@emotion/react"]).toBe("^11.14.0");
     expect(pkg.dependencies["@emotion/styled"]).toBe("^11.14.0");
