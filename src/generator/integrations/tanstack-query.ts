@@ -56,7 +56,7 @@ export const getQueryClient = () => {
   return browserQueryClient;
 };
 
-export const QueryProvider = ({ children }${isTs ? ": { children: React.ReactNode }" : ""}) => {
+export const QueryProvider = ({ children }${isTs ? ": { children?: React.ReactNode }" : ""}) => {
   const [queryClient] = useState(() => getQueryClient());
 
   return (

@@ -122,10 +122,10 @@ export const pagesInfo = {
     files.push({
       path: `src/hooks/useDebounce.${ext}`,
       content: `"use client";
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-export const useDebounce = <T,>(value: T, delay = 500): T => {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+export const useDebounce = ${isTs ? "<T,>(value: T, delay = 500): T" : "(value, delay = 500)"} => {
+  const [debouncedValue, setDebouncedValue] = useState${isTs ? "<T>" : ""}(value);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -147,7 +147,8 @@ export default useDebounce;
     if (hasRedux) {
       files.push({
         path: `src/hooks/useStore.hooks.${ext}`,
-        content: `import { useSelector, useDispatch } from 'react-redux';
+        content: isTs
+          ? `import { useSelector, useDispatch } from 'react-redux';
 import type { AppDispatch } from '@/store';
 import type rootReducer from '@/store/rootReducer';
 
@@ -159,6 +160,13 @@ export const useAppState = <T,>(selector: Selector<T>): T => useSelector(selecto
 export const useAppDispatcher = () => useDispatch<AppDispatch>();
 
 export { useAppState as useAppSelector, useAppDispatcher as useAppDispatch };
+`
+          : `import { useSelector, useDispatch } from 'react-redux';
+
+export const useAppState = (selector) => useSelector(selector);
+export const useAppDispatcher = () => useDispatch();
+
+export { useAppState as useAppSelector, useAppDispatcher as useAppDispatch };
 `,
       });
     }
@@ -166,10 +174,10 @@ export { useAppState as useAppSelector, useAppDispatcher as useAppDispatch };
     files.push({
       path: `src/hooks/useLocalStorage.${ext}`,
       content: `"use client";
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-export function useLocalStorage<T>(key: string, initialValue: T) {
-  const [storedValue, setStoredValue] = useState<T>(() => {
+export function useLocalStorage${isTs ? "<T>(key: string, initialValue: T)" : "(key, initialValue)"} {
+  const [storedValue, setStoredValue] = useState${isTs ? "<T>" : ""}(() => {
     try {
       if (typeof window === 'undefined') return initialValue;
       const item = window.localStorage.getItem(key);
@@ -189,7 +197,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     }
   }, [key, storedValue]);
 
-  return [storedValue, setStoredValue] as const;
+  return [storedValue, setStoredValue]${isTs ? " as const" : ""};
 }
 
 export default useLocalStorage;
@@ -210,9 +218,10 @@ export default useLocalStorage;
 `,
     });
 
-    files.push({
-      path: `src/services/auth/auth.types.${ext}`,
-      content: `export interface LoginPayload {
+    if (isTs) {
+      files.push({
+        path: `src/services/auth/auth.types.ts`,
+        content: `export interface LoginPayload {
   email: string;
   password: string;
 }
@@ -231,7 +240,8 @@ export interface RefreshTokenResponse {
   token: string;
 }
 `,
-    });
+      });
+    }
 
     files.push({
       path: `src/services/auth/auth.service.${ext}`,
@@ -300,9 +310,10 @@ export default AuthService.authService;
 `,
     });
 
-    files.push({
-      path: `src/services/dashboard/dashboard.types.${ext}`,
-      content: `export interface DashboardStats {
+    if (isTs) {
+      files.push({
+        path: `src/services/dashboard/dashboard.types.ts`,
+        content: `export interface DashboardStats {
   totalUsers: number;
   activeSessions: number;
   revenue: number;
@@ -316,7 +327,8 @@ export interface DashboardItem {
   createdAt: string;
 }
 `,
-    });
+      });
+    }
 
     files.push({
       path: `src/services/dashboard/dashboard.service.${ext}`,
@@ -443,7 +455,7 @@ export default DashboardView;
       content: `"use client";
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
-export interface ModalState {
+${isTs ? `export interface ModalState {
   isOpen: boolean;
   type?: string;
   data?: any;
@@ -457,18 +469,18 @@ export interface ModalContextType {
   closeModal: () => void;
   setModalLoading: (loading: boolean) => void;
 }
-
-const ModalContext = createContext<ModalContextType>({
+` : ""}
+const ModalContext = createContext${isTs ? "<ModalContextType>" : ""}({
   modal: { isOpen: false },
   openModal: () => {},
   closeModal: () => {},
   setModalLoading: () => {},
 });
 
-export const ModalProvider = ({ children }: { children?: React.ReactNode }) => {
-  const [modal, setModal] = useState<ModalState>({ isOpen: false });
+export const ModalProvider = ({ children }${isTs ? ": { children?: React.ReactNode }" : ""}) => {
+  const [modal, setModal] = useState${isTs ? "<ModalState>" : ""}({ isOpen: false });
 
-  const openModal = useCallback((type: string, data?: any, title?: string) => {
+  const openModal = useCallback((type${isTs ? ": string" : ""}, data${isTs ? "?: any" : ""}, title${isTs ? "?: string" : ""}) => {
     setModal({ isOpen: true, type, data, title, isLoading: false });
   }, []);
 
@@ -476,7 +488,7 @@ export const ModalProvider = ({ children }: { children?: React.ReactNode }) => {
     setModal({ isOpen: false, data: null, type: undefined, title: undefined, isLoading: false });
   }, []);
 
-  const setModalLoading = useCallback((isLoading: boolean) => {
+  const setModalLoading = useCallback((isLoading${isTs ? ": boolean" : ""}) => {
     setModal((prev) => ({ ...prev, isLoading }));
   }, []);
 
@@ -500,14 +512,14 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import store from '@/store';
 
-export const StoreProvider = ({ children }: { children?: React.ReactNode }) => {
+export const StoreProvider = ({ children }${isTs ? ": { children?: React.ReactNode }" : ""}) => {
   return <Provider store={store}>{children}</Provider>;
 };
 
 export default StoreProvider;
 `
         : `import React from 'react';
-export const StoreProvider = ({ children }: { children?: React.ReactNode }) => <>{children}</>;
+export const StoreProvider = ({ children }${isTs ? ": { children?: React.ReactNode }" : ""}) => <>{children}</>;
 export default StoreProvider;
 `,
     });
@@ -517,17 +529,17 @@ export default StoreProvider;
       content: `"use client";
 import React, { createContext, useContext, useState } from 'react';
 
-interface NavbarContextType {
+${isTs ? `interface NavbarContextType {
   sidebarOpen: boolean;
   toggleSidebar: () => void;
 }
-
-const NavbarContext = createContext<NavbarContextType>({
+` : ""}
+const NavbarContext = createContext${isTs ? "<NavbarContextType>" : ""}({
   sidebarOpen: true,
   toggleSidebar: () => {},
 });
 
-export const NavbarProvider = ({ children }: { children?: React.ReactNode }) => {
+export const NavbarProvider = ({ children }${isTs ? ": { children?: React.ReactNode }" : ""}) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
@@ -548,7 +560,7 @@ export default NavbarProvider;
       content: `"use client";
 import React from 'react';
 ${hasMui ? `import ThemeWrapperProvider from './theme.provider';\n` : ""}${hasQuery ? `import QueryProvider from './query.provider';\n` : ""}${hasToast ? `import { Toaster } from 'react-hot-toast';\n` : ""}
-export const LayoutProvider = ({ children }: { children?: React.ReactNode }) => {
+export const LayoutProvider = ({ children }${isTs ? ": { children?: React.ReactNode }" : ""}) => {
   let content = (
     <>
       {children}
@@ -575,7 +587,7 @@ import LayoutProvider from './layout.provider';
 import NavbarProvider from './navbar.provider';
 import ModalProvider from './modal.provider';
 
-export const Provider = ({ children }: { children?: React.ReactNode }) => {
+export const Provider = ({ children }${isTs ? ": { children?: React.ReactNode }" : ""}) => {
   return (
     <Suspense ${hasFolder("components") ? `fallback={<FullPageLoader isLoading={true} />}` : `fallback={<div>Loading...</div>}`}>
       <StoreProvider>
@@ -633,9 +645,7 @@ export const metadata = {
 
 export default function RootLayout({
   children,
-}: {
-  children?: React.ReactNode;
-}) {
+}${isTs ? ": { children?: React.ReactNode; }" : ""}) {
   return (
     <html lang="en">
       <body className="antialiased min-h-screen bg-slate-50 text-slate-900">

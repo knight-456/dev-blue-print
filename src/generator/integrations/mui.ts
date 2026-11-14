@@ -81,7 +81,7 @@ import React from 'react';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import muiTheme from '@/styles/theme';
 
-export const ThemeWrapperProvider = ({ children }${isTs ? ": { children: React.ReactNode }" : ""}) => {
+export const ThemeWrapperProvider = ({ children }${isTs ? ": { children?: React.ReactNode }" : ""}) => {
   return (
     <ThemeProvider theme={muiTheme}>
       <CssBaseline />

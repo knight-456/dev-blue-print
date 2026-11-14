@@ -111,6 +111,27 @@ export async function getCraConfig(config: ProjectConfig): Promise<{
             noEmit: true,
             jsx: "react-jsx",
             baseUrl: "src",
+            paths: {
+              "@/*": ["*"],
+            },
+          },
+          include: ["src"],
+        },
+        null,
+        2
+      ),
+    });
+  } else {
+    files.push({
+      path: "jsconfig.json",
+      content: JSON.stringify(
+        {
+          compilerOptions: {
+            baseUrl: "src",
+            paths: {
+              "@/*": ["*"],
+            },
+            jsx: "react-jsx",
           },
           include: ["src"],
         },
