@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="Scaffold React apps for Vite, Next.js, or Create React App. Choose TypeScript or JavaScript, project architecture, and integrations with DevBlueprint."
+    >
+    <meta name="robots" content="index, follow">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="DevBlueprint">
+    <meta
+      property="og:title"
+      content="DevBlueprint — React project generator for Vite, Next.js, and CRA"
+    >
+    <meta
+      property="og:description"
+      content="Create a React project with your preferred framework, architecture, and integrations using one interactive CLI."
+    >
+    <title>DevBlueprint — React project generator for Vite, Next.js, and CRA</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "DevBlueprint",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any",
+        "description": "A CLI for scaffolding React projects for Vite, Next.js, or Create React App with selectable architectures and integrations.",
+        "url": "https://github.com/knight-456/dev-blue-print",
+        "downloadUrl": "https://www.npmjs.com/package/create-devblueprint",
+        "softwareRequirements": "Node.js 18 or newer",
+        "license": "https://opensource.org/licenses/MIT"
+      }
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #172033;
+        background: #f7f8fc;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        line-height: 1.6;
+      }
+
+      a {
+        color: #5146d8;
+      }
+
+      .wrap {
+        width: min(1080px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      header {
+        padding: 22px 0;
+      }
+
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .brand {
+        color: #172033;
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      nav div {
+        display: flex;
+        gap: 20px;
+      }
+
+      nav a:not(.brand) {
+        color: #4c566d;
+        text-decoration: none;
+      }
+
+      .hero {
+        padding: 84px 0 72px;
+        background: #eef0ff;
+      }
+
+      .hero h1 {
+        max-width: 760px;
+        margin: 0;
+        font-size: clamp(2.4rem, 7vw, 4.5rem);
+        line-height: 1.08;
+        letter-spacing: -0.045em;
+      }
+
+      .hero p {
+        max-width: 680px;
+        margin: 22px 0 28px;
+        color: #4c566d;
+        font-size: 1.15rem;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .button {
+        display: inline-block;
+        padding: 11px 18px;
+        border-radius: 8px;
+        background: #5146d8;
+        color: #fff;
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .actions a:not(.button) {
+        font-weight: 650;
+      }
+
+      code,
+      pre {
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      }
+
+      .command {
+        display: inline-block;
+        padding: 12px 16px;
+        border: 1px solid #dfe2ec;
+        border-radius: 8px;
+        background: #fff;
+        color: #172033;
+      }
+
+      main section {
+        padding: 58px 0;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: clamp(1.7rem, 4vw, 2.3rem);
+        line-height: 1.2;
+      }
+
+      .intro {
+        max-width: 700px;
+        margin: 0 0 26px;
+        color: #4c566d;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
+      article {
+        padding: 22px;
+        border: 1px solid #e3e6ef;
+        border-radius: 12px;
+        background: #fff;
+      }
+
+      article h3 {
+        margin: 0 0 8px;
+      }
+
+      article p {
+        margin: 0;
+        color: #4c566d;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 22px;
+        margin: 28px 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .steps li {
+        padding-top: 12px;
+        border-top: 2px solid #d9dcf5;
+      }
+
+      .steps strong {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      pre {
+        overflow-x: auto;
+        margin: 0;
+        padding: 18px;
+        border-radius: 10px;
+        background: #172033;
+        color: #f2f4ff;
+      }
+
+      .faq {
+        display: grid;
+        gap: 18px;
+      }
+
+      .faq h3,
+      .faq p {
+        margin: 0;
+      }
+
+      .faq p {
+        color: #4c566d;
+      }
+
+      footer {
+        padding: 28px 0;
+        border-top: 1px solid #e3e6ef;
+        color: #4c566d;
+      }
+
+      footer p {
+        margin: 0;
+      }
+
+      @media (max-width: 560px) {
+        .wrap {
+          width: min(100% - 28px, 1080px);
+        }
+
+        nav {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        nav div {
+          flex-wrap: wrap;
+          gap: 8px 16px;
+        }
+
+        .hero {
+          padding: 56px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="wrap" aria-label="Main navigation">
+        <a class="brand" href="#top">DevBlueprint</a>
+        <div>
+          <a href="#features">Features</a>
+          <a href="#getting-started">Get started</a>
+          <a href="https://github.com/knight-456/dev-blue-print">GitHub</a>
+        </div>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="wrap">
+          <h1>A React project generator built around your workflow</h1>
+          <p>
+            Scaffold projects for Vite, Next.js, or Create React App. Choose TypeScript or JavaScript,
+            select an architecture, and include only the integrations your app needs.
+          </p>
+          <div class="actions">
+            <code class="command">npm create devblueprint my-app</code>
+            <a class="button" href="https://www.npmjs.com/package/create-devblueprint">Get the npm package</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="wrap">
+        <h2>Start with the stack you want</h2>
+        <p class="intro">
+          DevBlueprint is an interactive scaffolding CLI for developers who want a useful project
+          structure without manually assembling the same setup each time.
+        </p>
+        <div class="grid">
+          <article>
+            <h3>Choose your framework</h3>
+            <p>Generate a React app for Vite, Next.js, or Create React App.</p>
+          </article>
+          <article>
+            <h3>Choose an architecture</h3>
+            <p>Start with enterprise, modular, or minimal project organization.</p>
+          </article>
+          <article>
+            <h3>Select integrations</h3>
+            <p>Pick from Redux, TanStack Query, Axios, Tailwind CSS, MUI, forms, testing, and more.</p>
+          </article>
+          <article>
+            <h3>Control package versions</h3>
+            <p>Use a version preset, override individual packages, or query npm for current versions.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="getting-started" class="wrap">
+        <h2>From command to running app</h2>
+        <ol class="steps">
+          <li><strong>1. Run the CLI</strong>Start the interactive project setup.</li>
+          <li><strong>2. Choose options</strong>Select framework, language, architecture, and integrations.</li>
+          <li><strong>3. Install and run</strong>Install dependencies and start developing.</li>
+        </ol>
+        <pre><code>npm create devblueprint my-app
+cd my-app
+npm install
+npm run dev</code></pre>
+        <p>
+          Prefer a non-interactive setup? Use
+          <code>npx create-devblueprint my-app --framework vite --language typescript --architecture modular --integrations redux query axios --yes</code>.
+        </p>
+      </section>
+
+      <section class="wrap">
+        <h2>Frequently asked questions</h2>
+        <div class="faq">
+          <div>
+            <h3>Which frameworks can DevBlueprint scaffold?</h3>
+            <p>It supports Vite, Next.js, and Create React App.</p>
+          </div>
+          <div>
+            <h3>Can I choose TypeScript or JavaScript?</h3>
+            <p>Yes. Choose either language in the interactive prompts or pass the language option to the CLI.</p>
+          </div>
+          <div>
+            <h3>Does it install dependencies automatically?</h3>
+            <p>Dependency installation is optional. Add <code>--install</code> to install during scaffolding.</p>
+          </div>
+          <div>
+            <h3>Where can I find the source or report a problem?</h3>
+            <p>
+              Visit the <a href="https://github.com/knight-456/dev-blue-print">GitHub repository</a>
+              or open a <a href="https://github.com/knight-456/dev-blue-print/issues">GitHub issue</a>.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <p>
+          DevBlueprint is MIT licensed.
+          <a href="https://www.npmjs.com/package/create-devblueprint">npm</a> ·
+          <a href="https://github.com/knight-456/dev-blue-print">GitHub</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

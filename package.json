@@ -1,7 +1,7 @@
 {
   "name": "create-devblueprint",
-  "version": "1.0.0",
-  "description": "Enterprise-ready scaffolding CLI for React, Vite, and Next.js with feature-based architecture and modular integrations.",
+  "version": "1.0.1",
+  "description": "Create React, Vite, and Next.js projects with a modular CLI, selectable integrations, and feature-based architecture.",
   "type": "module",
   "bin": {
     "create-devblueprint": "./dist/cli.js",
@@ -15,6 +15,14 @@
     "templates",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/knight-456/dev-blue-print"
+  },
+  "homepage": "https://github.com/knight-456/dev-blue-print#readme",
+  "bugs": {
+    "url": "https://github.com/knight-456/dev-blue-print/issues"
+  },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
@@ -24,21 +32,22 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [
+    "react-project-generator",
+    "react-boilerplate",
+    "react-starter",
+    "vite-starter",
+    "nextjs-starter",
+    "project-generator",
+    "starter-template",
     "cli",
-    "scaffold",
+    "scaffolding",
     "react",
     "vite",
     "nextjs",
-    "cra",
+    "typescript",
+    "feature-based-architecture",
     "redux",
-    "tanstack-query",
-    "axios",
-    "tailwind",
-    "mui",
-    "shadcn",
-    "dayjs",
-    "testing",
-    "feature-architecture"
+    "tanstack-query"
   ],
   "author": "DevBlueprint Team",
   "license": "MIT",

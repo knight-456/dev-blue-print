@@ -1,142 +1,91 @@
-# DevBlueprint (`create-devblueprint`)
+# DevBlueprint
 
-> Enterprise-ready scaffolding CLI for React, Vite, and Next.js applications with custom modular folder selection, dynamic package version resolution, and interactive setup.
+Scaffold React apps for Vite, Next.js, or Create React App with an interactive CLI, selectable integrations, and reusable project architecture.
 
----
+[npm package](https://www.npmjs.com/package/create-devblueprint) · [Source code](https://github.com/knight-456/dev-blue-print) · [Report an issue](https://github.com/knight-456/dev-blue-print/issues)
 
-## ⚡ Quick Start
-
-### Using your favorite package manager:
+## Get started
 
 ```bash
-# Interactive prompt mode
-npx create-devblueprint my-app
-
-# Or using npm create
 npm create devblueprint my-app
-
-# Using pnpm / yarn / bun
-pnpm create devblueprint my-app
-yarn create devblueprint my-app
-bun create devblueprint my-app
 ```
 
----
-
-## 🎯 Modular Enterprise Architecture
-
-DevBlueprint allows you to select exactly which modules and folders to include in your project:
-
-```text
-src/
-├── apiInstance/             # Centralized Axios instances (public, cred, auth)
-│   └── axios.apiInstance.ts
-├── interceptors/            # JWT Token interceptors & auto-refresh
-│   └── axios.interceptor.ts
-├── services/                # Singleton domain services
-│   ├── auth/                # auth.service.ts, auth.const.ts
-│   └── dashboard/           # dashboard.service.ts, dashboard.const.ts
-├── store/                   # Root Redux store configuration
-│   ├── index.ts             # configureStore with devTools
-│   ├── root-reducer.ts      # Combined feature reducers
-│   └── hooks.ts             # Typed useAppDispatch, useAppSelector
-├── redux/                   # Domain state slices
-│   ├── auth/authSlice.ts    # Authentication & user state
-│   └── local/localSlice.ts  # Theme & sidebar UI states
-├── provider/                # Master provider wrappers
-│   ├── index.tsx            # Suspense + full-page-loader + store + navbar + layout
-│   ├── store.provider.tsx   # Redux Provider
-│   ├── layout.provider.tsx  # MUI Theme + Tailwind CSS + Toast wrapper
-│   └── navbar.provider.tsx  # Sidebar navigation context
-├── components/              # Shared component library
-│   ├── loaders/             # full-page-loader.tsx
-│   └── ui/                  # shadcn/ui primitives (Button, Card, Input)
-├── config/                  # App constants & API endpoints
-│   └── index.ts             # API_BASE_URL, API_AUTH_BASE_URL, environment detection
-├── constants/               # Route paths, user roles, cookie names
-├── hooks/                   # Reusable custom hooks
-├── utils/                   # Shared utility helpers
-│   ├── local.cookies.ts     # Cookie helpers using cookies-next
-│   ├── utils.data.ts        # Validity durations & cookie keys
-│   └── dayjs.ts             # Day.js with timezone & relativeTime plugins
-├── globals.css              # Tailwind CSS v4 (@import "tailwindcss"; or v3)
-├── theme.css                # Color variables, heights & design tokens
-├── proxy.ts / middleware.ts # Route authentication & security guards (Next.js)
-├── app/ or routes/          # Framework page routing (Next.js App Router / Vite React Router)
-└── main.tsx / index.tsx     # Client DOM bootstrap
-```
-
----
-
-## 🚀 Package Version Engine
-
-DevBlueprint delivers **latest package versions** (React 19, Next.js 16, Tailwind CSS v4, React Router DOM v7) while allowing complete flexibility for custom or future versions.
-
-### 1. Version Presets (`--preset`)
-- **`enterprise` (Default)**: Battle-tested production stack:
-  - React `19.2.3`, Next.js `16.1.1` (Turbopack)
-  - Tailwind CSS `^4` with `@tailwindcss/postcss: ^4`
-  - Redux Toolkit `^2.11.2`, React Redux `^9.2.0`
-  - MUI `^7.3.6`, Axios `^1.13.2`, Zod `^4.3.6`, Day.js `^1.11.19`
-- **`latest`**: Resolves latest semantic versions across all libraries.
-- **`stable`**: LTS versions (React 18.3, Next 15, Tailwind v3).
-
-### 2. Override Any Package Version (`--pkg`)
-You can override any specific package version at scaffold time:
+Answer the prompts to choose a framework, language, architecture, and integrations. Then install the generated app's dependencies and start its development server:
 
 ```bash
-# Pin React and Next.js to specific versions:
-npx create-devblueprint my-app --pkg react@19.0.0 --pkg next@16.0.0
+cd my-app
+npm install
+npm run dev
+```
 
-# Override multiple packages via JSON:
+You can also use `npx create-devblueprint my-app`, `pnpm create devblueprint my-app`, `yarn create devblueprint my-app`, or `bun create devblueprint my-app`.
+
+## What it generates
+
+- **Frameworks:** Vite, Next.js, and Create React App
+- **Languages:** TypeScript or JavaScript
+- **Architectures:** enterprise, modular, or minimal
+- **Optional integrations:** Redux, TanStack Query, Axios, Tailwind CSS, MUI, shadcn/ui, Day.js, forms, testing, cookies, toast notifications, and motion
+- **Project setup:** select integrations and folders, choose a package manager, and optionally install dependencies or initialize Git
+
+The enterprise architecture organizes common concerns into modules such as API clients, services, state management, providers, components, configuration, hooks, and utilities. Choose a smaller architecture or select only the integrations your project needs.
+
+## Non-interactive example
+
+Pass `--yes` to use defaults, or specify the project options:
+
+```bash
+npx create-devblueprint my-app --framework vite --language typescript --architecture modular --integrations redux query axios --yes
+```
+
+Add `--install` to install dependencies during scaffolding. Package installation is otherwise left to you.
+
+## Package versions
+
+Choose a version preset:
+
+```bash
+npx create-devblueprint my-app --preset stable
+```
+
+Available presets are `enterprise` (default), `latest`, and `stable`. Override individual versions with `--pkg`, or provide several overrides as JSON:
+
+```bash
+npx create-devblueprint my-app --pkg react@19.0.0 --pkg next@16.0.0
 npx create-devblueprint my-app --package-versions '{"axios":"^1.15.0","dayjs":"^1.12.0"}'
 ```
 
-### 3. Dynamically Fetch npm Live Latest (`--fetch-latest`)
-Query the npm registry directly to retrieve tomorrow's releases automatically:
+Use `--fetch-latest` to query npm for current package versions when scaffolding.
 
-```bash
-npx create-devblueprint my-app --fetch-latest
-```
+## CLI options
 
----
+| Option | Description |
+| --- | --- |
+| `-f, --framework <type>` | `vite` (default), `next`, or `cra` |
+| `-l, --language <lang>` | `typescript` (default) or `javascript` |
+| `-a, --architecture <type>` | `enterprise` (default), `modular`, or `minimal` |
+| `--router <type>` | Next.js router: `app` (default) or `pages` |
+| `--folders <items...>` | Select folders such as `services`, `store`, `components`, and `utils` |
+| `-i, --integrations <items...>` | Select integrations such as `redux`, `query`, `axios`, and `tailwind` |
+| `-p, --package-manager <pm>` | `npm`, `pnpm`, `yarn`, or `bun` |
+| `--preset <preset>` | Package version preset: `enterprise`, `latest`, or `stable` |
+| `--pkg <items...>` | Override individual package versions |
+| `--package-versions <json>` | Override package versions with a JSON object |
+| `--fetch-latest` | Query npm for current package versions |
+| `--install` | Install generated project dependencies |
+| `--no-git` | Do not initialize a Git repository |
+| `-y, --yes` | Skip interactive prompts and use defaults |
 
-## 🛠️ CLI Options & Flags
+Run `npx create-devblueprint --help` for the full option list.
 
-| Flag | Description | Options / Defaults |
-|------|-------------|--------------------|
-| `-f, --framework <type>` | Target framework | `vite` (default), `next`, `cra` |
-| `-l, --language <lang>` | Language type | `typescript` (default), `javascript` |
-| `-a, --architecture <arch>` | Architecture pattern | `enterprise` (default), `feature`, `minimal` |
-| `--folders <items...>` | Selective folders | `apiInstance`, `interceptors`, `services`, `store`, `redux`, `provider`, `components`, `config`, `constants`, `hooks`, `utils`, `layouts` |
-| `--preset <preset>` | Version preset | `enterprise` (default), `latest`, `stable` |
-| `--pkg <items...>` | Override package version | e.g. `--pkg react@19.2.3 --pkg next@16.1.1` |
-| `--package-versions <json>` | Bulk JSON version overrides | e.g. `'{"next":"16.1.1"}'` |
-| `--fetch-latest` | Live query npm registry for cutting-edge versions | `false` |
-| `-i, --integrations <items...>` | List of integrations | `redux`, `query`, `axios`, `tailwind`, `mui`, `shadcn`, `dayjs`, `forms`, `testing`, `cookies`, `toast` |
-| `-p, --package-manager <pm>` | Package manager | `npm`, `pnpm`, `yarn`, `bun` |
-| `--install` | Automatically install dependencies | `false` |
-| `--no-git` | Skip `git init` | Initializes git by default |
-| `-y, --yes` | Quick scaffold with defaults | `false` |
+## Requirements
 
----
+Node.js 18 or newer.
 
-## 📦 Publishing to npm
+## Contributing and support
 
-```bash
-# 1. Run tests & build
-npm test
-npm run build
+Bug reports and feature requests are welcome in [GitHub Issues](https://github.com/knight-456/dev-blue-print/issues). See the [repository](https://github.com/knight-456/dev-blue-print) for the source and contribution details.
 
-# 2. Authenticate
-npm login
+## License
 
-# 3. Publish to npm registry
-npm publish --access public
-```
-
----
-
-## 📄 License
-
-MIT © [DevBlueprint Team](https://github.com)
+MIT © [DevBlueprint contributors](https://github.com/knight-456/dev-blue-print/graphs/contributors)
